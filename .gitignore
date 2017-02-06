@@ -1,7 +1,7 @@
 *.class
 
 # Gradle build directory
-.gradle
+.gradle/
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
