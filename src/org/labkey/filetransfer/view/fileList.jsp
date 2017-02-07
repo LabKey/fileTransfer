@@ -17,9 +17,75 @@
 %>
 <%@ page import="org.labkey.api.data.Container" %>
 <%@ page import="org.labkey.api.security.User" %>
+<%@ page import="org.labkey.api.view.template.ClientDependencies" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
+<%!
+    @Override
+    public void addClientDependencies(ClientDependencies dependencies)
+    {
+        dependencies.add("Ext4");
+        dependencies.add("sqv");
+    }
+%>
 <%
     Container c = getContainer();
     User user = getUser();
 %>
-<div name="helloMessage">Hello, and welcome to the FileTransfer module.</div>
+<div id="SQVPicker"></div>
+
+
+<script type="text/javascript">
+
+    Ext4.onReady(function()
+    {
+        var sqvModel = Ext4.create('LABKEY.sqv.Model', {});
+
+        var containerIdTextField = Ext4.create('Ext.form.field.Text', {
+            name: 'containerId',
+            hidden: true
+        });
+
+        var containerComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeContainerComboConfig({
+            name: 'container',
+            editable: false,
+            width: 510,
+            listeners: {
+                select: function(combo) {
+                    containerIdTextField.setValue(combo.getValue());
+                }
+            }
+        }));
+
+        var schemaComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeSchemaComboConfig({
+            name: 'schemaName',
+            forceSelection: true,
+            width: 300
+        }));
+
+        var queryComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeQueryComboConfig({
+            name: 'queryName',
+            forceSelection: true,
+            width: 300
+        }));
+
+        var columnComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeColumnComboConfig({
+            name: 'columnName',
+            fieldLabel: 'Name',
+            forceSelection: true,
+            width: 300
+        }));
+
+        Ext4.create('Ext.form.Panel', {
+            border : false,
+            renderTo : 'SQVPicker',
+            items : [
+                containerIdTextField,
+                containerComboField,
+                schemaComboField,
+                queryComboField,
+                columnComboField,
+                { xtype: 'hidden', name: 'X-LABKEY-CSRF', value: LABKEY.CSRF }
+            ]
+        });
+    });
+</script>

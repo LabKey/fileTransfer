@@ -11,5 +11,6 @@ public class FileTransferMetadataView extends JspView
     public FileTransferMetadataView(ViewContext context)
     {
         super("/org/labkey/filetransfer/view/fileList.jsp");
+        setTitle("File Transfer Set-Up");
     }
 }
