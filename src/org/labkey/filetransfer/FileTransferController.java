@@ -18,11 +18,9 @@ package org.labkey.filetransfer;
 
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
-import org.labkey.api.data.ContainerManager;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.ReadPermission;
-import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.springframework.validation.BindException;
@@ -50,11 +48,6 @@ public class FileTransferController extends SpringActionController
         {
             return root;
         }
-    }
-
-    public static ActionURL getConfigurationUrl()
-    {
-        return new ActionURL(ConfigurationAction.class, ContainerManager.getRoot());
     }
 
     @RequiresPermission(AdminPermission.class)

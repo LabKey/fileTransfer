@@ -54,13 +54,8 @@ public class FileTransferModule extends CodeOnlyModule
     protected void init()
     {
         addController(FileTransferController.NAME, FileTransferController.class);
-        registerAdminConsoleLinks();
     }
 
-    private static void registerAdminConsoleLinks()
-    {
-        AdminConsole.addLink(AdminConsole.SettingsLinkType.Configuration, "File Transfer", FileTransferController.getConfigurationUrl());
-    }
     @Override
     public void doStartup(ModuleContext moduleContext)
     {
