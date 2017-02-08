@@ -57,13 +57,14 @@ public class FileTransferController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            return null;
+            root.addChild("File Transfer Set-Up");
+            return root;
         }
 
         @Override
         public ModelAndView getView(Object o, BindException errors) throws Exception
         {
-            return null;
+            return new JspView("/org/labkey/filetransfer/view/fileTransferConfig.jsp");
         }
     }
 }
