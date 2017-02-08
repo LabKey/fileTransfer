@@ -16,9 +16,17 @@
 
 package org.labkey.filetransfer;
 
+import org.labkey.api.data.Container;
+import org.labkey.api.data.PropertyManager;
+
 public class FileTransferManager
 {
     private static final FileTransferManager _instance = new FileTransferManager();
+    public static final String FILE_TRANSFER_CONFIG_PROPERTIES = "fileTransferConfigProperties";
+    public static final String ENDPOINT_DIRECTORY = "endpointDirectory";
+    public static final String REFERENCE_FOLDER = "listFolder";
+    public static final String REFERENCE_LIST = "listTable";
+    public static final String REFERENCE_COLUMN = "fileColumn";
 
     private FileTransferManager()
     {
@@ -28,5 +36,15 @@ public class FileTransferManager
     public static FileTransferManager get()
     {
         return _instance;
+    }
+
+    public void saveFileTransferConfig(FileTransferConfigForm form, Container container)
+    {
+        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
+        map.put(ENDPOINT_DIRECTORY, String.valueOf(form.getEndpointPath()));
+        map.put(REFERENCE_FOLDER, String.valueOf(form.getLookupContainer()));
+        map.put(REFERENCE_LIST, String.valueOf(form.getQueryName()));
+        map.put(REFERENCE_COLUMN, String.valueOf(form.getColumnName()));
+        map.save();
     }
 }

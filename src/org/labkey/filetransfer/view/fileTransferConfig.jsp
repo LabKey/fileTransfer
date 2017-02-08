@@ -18,6 +18,9 @@
 <%@ page import="org.labkey.api.data.Container" %>
 <%@ page import="org.labkey.api.security.User" %>
 <%@ page import="org.labkey.api.view.template.ClientDependencies" %>
+<%@ page import="org.labkey.filetransfer.FileTransferConfigForm" %>
+<%@ page import="org.labkey.api.view.JspView" %>
+<%@ page import="org.labkey.api.view.HttpView" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
     @Override
@@ -31,6 +34,8 @@
 <%
     Container c = getContainer();
     User user = getUser();
+    JspView<FileTransferConfigForm> me = (JspView<FileTransferConfigForm>) HttpView.currentView();
+    FileTransferConfigForm bean = me.getModelBean();
 %>
 <div id="SQVPicker"></div>
 
@@ -40,12 +45,14 @@
     Ext4.onReady(function()
     {
         var endpointField = Ext4.create('Ext.form.field.Text', {
-            name: "filePath",
+            name: "endpointPath",
             labelWidth: 150,
             width: 510,
             hidden: false,
             disabled: false,
             fieldLabel: "Endpoint Directory",
+            initialValue : <%=q(bean.getEndpointPath())%>,
+            value: <%=q(bean.getEndpointPath())%>,
             allowBlank: false
         });
 
@@ -57,41 +64,52 @@
         });
 
         var containerComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeContainerComboConfig({
-            name: 'container',
+            name: 'lookupContainer',
             labelWidth: 150,
             fieldLabel: 'Reference List Folder',
             editable: false,
             width: 510,
             allowBlank: false,
+            initialValue : <%=q(bean.getLookupContainer())%>,
+            value : <%=q(bean.getLookupContainer())%>,
             listeners: {
                 select: function(combo) {
                     containerIdTextField.setValue(combo.getValue());
+                    sqvModel.changeQueryStore(combo.getValue(), 'lists');
                 }
             }
         }));
 
-        var schemaComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeSchemaComboConfig({
-            name: 'schemaName',
-            forceSelection: true,
+        var schemaComboField = Ext4.create('Ext.form.field.ComboBox', {
+            name: 'listSchema',
             labelWidth: 150,
             allowBlank: false,
+            fieldLabel: 'Schema',
+            value: 'lists',
+            disabled: true,
             width: 300
-        }));
+        });
 
         var queryComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeQueryComboConfig({
             name: 'queryName',
             forceSelection: true,
+            defaultSchema: 'lists',
+            fieldLabel: 'Table',
             labelWidth: 150,
             allowBlank: false,
+            initialValue : <%=q(bean.getQueryName())%>,
+            value : <%=q(bean.getQueryName())%>,
             width: 300
         }));
 
         var columnComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeColumnComboConfig({
             name: 'columnName',
-            fieldLabel: 'Name',
+            fieldLabel: 'Filename Field',
             forceSelection: true,
             labelWidth: 150,
             allowBlank: false,
+            initialValue : <%=q(bean.getColumnName())%>,
+            value : <%=q(bean.getColumnName())%>,
             margin: '0, 0, 20, 0',
             width: 300
         }));

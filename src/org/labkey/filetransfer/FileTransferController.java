@@ -16,15 +16,25 @@
 
 package org.labkey.filetransfer;
 
+import org.apache.commons.lang3.StringUtils;
+import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
+import org.labkey.api.data.PropertyManager;
+import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.ReadPermission;
+import org.labkey.api.util.PageFlowUtil;
+import org.labkey.api.util.URLHelper;
+import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.springframework.validation.BindException;
+import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.util.Map;
 
 public class FileTransferController extends SpringActionController
 {
@@ -51,9 +61,8 @@ public class FileTransferController extends SpringActionController
     }
 
     @RequiresPermission(AdminPermission.class)
-    public class ConfigurationAction extends SimpleViewAction
+    public class ConfigurationAction extends FormViewAction<FileTransferConfigForm>
     {
-
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
@@ -62,9 +71,40 @@ public class FileTransferController extends SpringActionController
         }
 
         @Override
-        public ModelAndView getView(Object o, BindException errors) throws Exception
+        public void validateCommand(FileTransferConfigForm target, Errors errors)
         {
-            return new JspView("/org/labkey/filetransfer/view/fileTransferConfig.jsp");
+
+        }
+
+        @Override
+        public ModelAndView getView(FileTransferConfigForm form, boolean reshow, BindException errors) throws Exception
+        {
+            Map<String, String> map = PropertyManager.getProperties(getContainer(), FileTransferManager.FILE_TRANSFER_CONFIG_PROPERTIES);
+            form.setEndpointPath(map.get(FileTransferManager.ENDPOINT_DIRECTORY));
+            form.setLookupContainer(map.get(FileTransferManager.REFERENCE_FOLDER));
+            form.setQueryName(map.get(FileTransferManager.REFERENCE_LIST));
+            form.setColumnName(map.get(FileTransferManager.REFERENCE_COLUMN));
+            return new JspView<>("/org/labkey/filetransfer/view/fileTransferConfig.jsp", form, errors);
+        }
+
+        @Override
+        public boolean handlePost(FileTransferConfigForm form, BindException errors) throws Exception
+        {
+            if (StringUtils.isEmpty(form.getEndpointPath()))
+                return false;
+
+            FileTransferManager.get().saveFileTransferConfig(form, getContainer());
+            return true;
+        }
+
+        @Override
+        public URLHelper getSuccessURL(FileTransferConfigForm form)
+        {
+            if (form.getReturnUrl() != null)
+                return new ActionURL(form.getReturnUrl());
+            else
+                return PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
         }
     }
+
 }
