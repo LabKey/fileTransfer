@@ -18,12 +18,13 @@ package org.labkey.filetransfer;
 
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.ContainerManager;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.view.SimpleWebPartFactory;
 import org.labkey.api.view.WebPartFactory;
-import org.labkey.filetransfer.query.FileTransferQuerySchema;
 import org.labkey.api.webdav.WebdavService;
+import org.labkey.filetransfer.query.FileTransferQuerySchema;
 import org.labkey.filetransfer.view.FileTransferMetadataView;
 
 import java.util.ArrayList;
@@ -61,6 +62,8 @@ public class FileTransferModule extends DefaultModule
     @Override
     protected void doStartup(ModuleContext moduleContext)
     {
+        // add a container listener so we'll know when our container is deleted:
+        ContainerManager.addContainerListener(new FileTransferContainerListener());
     }
 
     @Override
