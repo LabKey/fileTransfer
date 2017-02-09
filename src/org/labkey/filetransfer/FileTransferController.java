@@ -30,6 +30,7 @@ import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
+import org.labkey.filetransfer.view.FileTransferMetadataView;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
@@ -51,7 +52,7 @@ public class FileTransferController extends SpringActionController
     {
         public ModelAndView getView(Object o, BindException errors) throws Exception
         {
-            return new JspView("/org/labkey/filetransfer/view/fileList.jsp");
+            return new FileTransferMetadataView(getViewContext());
         }
 
         public NavTree appendNavTrail(NavTree root)

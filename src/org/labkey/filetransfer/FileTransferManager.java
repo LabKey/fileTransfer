@@ -16,8 +16,12 @@
 
 package org.labkey.filetransfer;
 
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.PropertyManager;
+import org.labkey.api.exp.list.ListDefinition;
+import org.labkey.api.exp.list.ListService;
 
 public class FileTransferManager
 {
@@ -46,5 +50,43 @@ public class FileTransferManager
         map.put(REFERENCE_LIST, String.valueOf(form.getQueryName()));
         map.put(REFERENCE_COLUMN, String.valueOf(form.getColumnName()));
         map.save();
+    }
+
+    public PropertyManager.PropertyMap getFileTransferConfig(Container container)
+    {
+        return PropertyManager.getProperties(container, FileTransferManager.FILE_TRANSFER_CONFIG_PROPERTIES);
+    }
+
+    public Boolean isMetadataListConfigured(Container container)
+    {
+        return !getFileTransferConfig(container).isEmpty();
+    }
+
+    @Nullable
+    public ListDefinition getMetadataList(Container container)
+    {
+        PropertyManager.PropertyMap map = FileTransferManager.get().getFileTransferConfig(container);
+
+        if (!map.isEmpty())
+        {
+            String listContainerId = map.get(REFERENCE_FOLDER);
+            Container listContainer = ContainerManager.getForId(listContainerId);
+            if (listContainer != null)
+            {
+                String listName = map.get(REFERENCE_LIST);
+                return ListService.get().getList(listContainer, listName);
+            }
+        }
+        return null;
+    }
+
+    public String getFileNameColumn(Container container)
+    {
+        PropertyManager.PropertyMap map = FileTransferManager.get().getFileTransferConfig(container);
+        if (!map.isEmpty())
+        {
+            return map.get(REFERENCE_COLUMN);
+        }
+        return null;
     }
 }

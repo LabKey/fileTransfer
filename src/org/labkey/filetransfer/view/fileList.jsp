@@ -15,21 +15,27 @@
      * limitations under the License.
      */
 %>
-<%@ page import="org.labkey.api.data.Container" %>
-<%@ page import="org.labkey.api.security.User" %>
+<%@ page import="org.labkey.api.view.HttpView" %>
+<%@ page import="org.labkey.api.view.JspView" %>
+<%@ page import="org.labkey.api.view.Portal" %>
+<%@ page import="org.springframework.web.servlet.ModelAndView" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
-    Container c = getContainer();
-    User user = getUser();
-%>
-<div name="helloMessage">Hello, and welcome to the FileTransfer module.</div>
-<div id='setup_link'></div>
-<script type='text/javascript'>
+    JspView<Portal.WebPart> me = (JspView<Portal.WebPart>) HttpView.currentView();
 
-    Ext4.onReady(function() {
-        Ext4.get('setup_link').update(LABKEY.Utils.textLink({
-            text: 'Set Up',
-            href: LABKEY.ActionURL.buildURL('fileTransfer', 'configuration')
-        }));
-    });
-</script>
+    ModelAndView metadataList = me.getView("metadataList");
+%>
+
+
+<%
+    if (metadataList != null)
+    {
+        me.include(metadataList, out);
+    }
+    else
+    {
+%>
+No metadata list currently configured for this container.
+<%
+    }
+%>

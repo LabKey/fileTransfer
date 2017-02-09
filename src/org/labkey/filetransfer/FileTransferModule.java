@@ -18,21 +18,22 @@ package org.labkey.filetransfer;
 
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
-import org.labkey.api.data.ContainerManager;
-import org.labkey.api.module.CodeOnlyModule;
+import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
-import org.labkey.api.settings.AdminConsole;
 import org.labkey.api.view.SimpleWebPartFactory;
 import org.labkey.api.view.WebPartFactory;
+import org.labkey.filetransfer.query.FileTransferQuerySchema;
 import org.labkey.filetransfer.view.FileTransferMetadataView;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 
-public class FileTransferModule extends CodeOnlyModule
+public class FileTransferModule extends DefaultModule
 {
     public static final String NAME = "FileTransfer";
+    public static final String SCHEMA_NAME = "fileTransfer";
 
     @Override
     public String getName()
@@ -51,16 +52,29 @@ public class FileTransferModule extends CodeOnlyModule
     }
 
     @Override
-    protected void init()
+    public boolean hasScripts()
     {
-        addController(FileTransferController.NAME, FileTransferController.class);
+        return false;
     }
 
     @Override
-    public void doStartup(ModuleContext moduleContext)
+    protected void doStartup(ModuleContext moduleContext)
     {
-        // add a container listener so we'll know when our container is deleted:
-        ContainerManager.addContainerListener(new FileTransferContainerListener());
+    }
+
+    @Override
+    protected void init()
+    {
+        addController(FileTransferController.NAME, FileTransferController.class);
+        FileTransferQuerySchema.register(this);
+    }
+
+
+    @Override
+    @NotNull
+    public Set<String> getSchemaNames()
+    {
+        return Collections.singleton(SCHEMA_NAME);
     }
 
     @Override
