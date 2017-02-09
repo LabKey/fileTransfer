@@ -47,4 +47,11 @@ public class FileTransferManager
         map.put(REFERENCE_COLUMN, String.valueOf(form.getColumnName()));
         map.save();
     }
+
+    public String getEndpointPath(Container container)
+    {
+        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
+        return map.get(ENDPOINT_DIRECTORY);
+    }
+
 }

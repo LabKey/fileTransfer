@@ -21,9 +21,9 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.module.CodeOnlyModule;
 import org.labkey.api.module.ModuleContext;
-import org.labkey.api.settings.AdminConsole;
 import org.labkey.api.view.SimpleWebPartFactory;
 import org.labkey.api.view.WebPartFactory;
+import org.labkey.api.webdav.WebdavService;
 import org.labkey.filetransfer.view.FileTransferMetadataView;
 
 import java.util.ArrayList;
@@ -54,6 +54,8 @@ public class FileTransferModule extends CodeOnlyModule
     protected void init()
     {
         addController(FileTransferController.NAME, FileTransferController.class);
+
+        WebdavService.get().addProvider(new FileTransferSWebdavProvider());
     }
 
     @Override
