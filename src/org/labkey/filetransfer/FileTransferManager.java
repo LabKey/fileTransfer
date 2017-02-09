@@ -89,4 +89,11 @@ public class FileTransferManager
         }
         return null;
     }
+
+    public String getEndpointPath(Container container)
+    {
+        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
+        return map.get(ENDPOINT_DIRECTORY);
+    }
+
 }

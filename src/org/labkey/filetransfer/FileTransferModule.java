@@ -23,6 +23,7 @@ import org.labkey.api.module.ModuleContext;
 import org.labkey.api.view.SimpleWebPartFactory;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.filetransfer.query.FileTransferQuerySchema;
+import org.labkey.api.webdav.WebdavService;
 import org.labkey.filetransfer.view.FileTransferMetadataView;
 
 import java.util.ArrayList;
@@ -66,9 +67,10 @@ public class FileTransferModule extends DefaultModule
     protected void init()
     {
         addController(FileTransferController.NAME, FileTransferController.class);
+
+        WebdavService.get().addProvider(new FileTransferWebdavProvider());
         FileTransferQuerySchema.register(this);
     }
-
 
     @Override
     @NotNull
