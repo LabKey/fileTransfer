@@ -18,7 +18,7 @@ import java.util.Set;
 /**
  * Created by xingyang on 2/8/17.
  */
-public class FileTransferSWebdavProvider implements WebdavService.Provider
+public class FileTransferWebdavProvider implements WebdavService.Provider
 {
     public static final String FILE_LINK = "@filetransfer";
 

@@ -55,7 +55,7 @@ public class FileTransferModule extends CodeOnlyModule
     {
         addController(FileTransferController.NAME, FileTransferController.class);
 
-        WebdavService.get().addProvider(new FileTransferSWebdavProvider());
+        WebdavService.get().addProvider(new FileTransferWebdavProvider());
     }
 
     @Override
