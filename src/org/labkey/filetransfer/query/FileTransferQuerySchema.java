@@ -15,6 +15,7 @@ import org.labkey.filetransfer.FileTransferManager;
 import org.labkey.filetransfer.FileTransferModule;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -50,8 +51,9 @@ public class FileTransferQuerySchema extends UserSchema
     {
         if (name.equals(FILE_METADATA_TABLE_NAME))
         {
+            List<String> activeFiles = FileTransferManager.get().getActiveFiles(getContainer());
             ListDefinition listDef = FileTransferManager.get().getMetadataList(getContainer());
-            return listDef == null ? null : new FileTransferMetadataTable(listDef.getTable(getUser()), this);
+            return listDef == null ? null : new FileTransferMetadataTable(listDef.getTable(getUser()), activeFiles, this);
         }
         return null;
     }

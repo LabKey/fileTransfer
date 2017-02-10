@@ -33,7 +33,6 @@ public class FileTransferMetadataView extends JspView
         FileTransferManager manager = FileTransferManager.get();
         if (manager.isMetadataListConfigured(context.getContainer()))
         {
-            List<String> activeFiles = FileTransferManager.get().getActiveFiles(context.getContainer());
             UserSchema schema = QueryService.get().getUserSchema(context.getUser(), context.getContainer(), FileTransferQuerySchema.NAME);
             QuerySettings settings = schema.getSettings(getViewContext(), QueryView.DATAREGIONNAME_DEFAULT, FileTransferQuerySchema.FILE_METADATA_TABLE_NAME);
             QueryView queryView = schema.createView(getViewContext(), settings, null);

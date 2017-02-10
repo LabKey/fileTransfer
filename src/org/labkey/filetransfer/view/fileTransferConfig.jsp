@@ -1,3 +1,4 @@
+<%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%
     /*
      * Copyright (c) 2017 LabKey Corporation
@@ -37,6 +38,7 @@
     JspView<FileTransferConfigForm> me = (JspView<FileTransferConfigForm>) HttpView.currentView();
     FileTransferConfigForm bean = me.getModelBean();
 %>
+<labkey:errors/>
 <div id="SQVPicker"></div>
 
 

@@ -21,10 +21,12 @@ import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.data.PropertyManager;
+import org.labkey.api.files.FileContentService;
 import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.ReadPermission;
+import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
@@ -72,9 +74,14 @@ public class FileTransferController extends SpringActionController
         }
 
         @Override
-        public void validateCommand(FileTransferConfigForm target, Errors errors)
+        public void validateCommand(FileTransferConfigForm form, Errors errors)
         {
-
+            String endpointPath = form.getEndpointPath();
+            FileContentService service = ServiceRegistry.get().getService(FileContentService.class);
+            if (service != null && !service.isValidProjectRoot(endpointPath))
+            {
+                errors.reject(ERROR_MSG, "File root '" + endpointPath + "' does not appear to be a valid directory accessible to the server at " + getViewContext().getRequest().getServerName() + ".");
+            }
         }
 
         @Override
@@ -92,6 +99,9 @@ public class FileTransferController extends SpringActionController
         public boolean handlePost(FileTransferConfigForm form, BindException errors) throws Exception
         {
             if (StringUtils.isEmpty(form.getEndpointPath()))
+                return false;
+
+            if (errors.hasErrors())
                 return false;
 
             FileTransferManager.get().saveFileTransferConfig(form, getContainer());

@@ -51,12 +51,18 @@ public class FileTransferManager
 
     public void saveFileTransferConfig(FileTransferConfigForm form, Container container)
     {
+        String oldPath = getEndpointPath(container);
+
         PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
         map.put(ENDPOINT_DIRECTORY, String.valueOf(form.getEndpointPath()));
         map.put(REFERENCE_FOLDER, String.valueOf(form.getLookupContainer()));
         map.put(REFERENCE_LIST, String.valueOf(form.getQueryName()));
         map.put(REFERENCE_COLUMN, String.valueOf(form.getColumnName()));
         map.save();
+
+        ContainerManager.ContainerPropertyChangeEvent evt = new ContainerManager.ContainerPropertyChangeEvent(
+                container, ContainerManager.Property.EndpointDirectory, oldPath, form.getEndpointPath());
+        ContainerManager.firePropertyChangeEvent(evt);
     }
 
     public PropertyManager.PropertyMap getFileTransferConfig(Container container)
