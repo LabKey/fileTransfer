@@ -55,7 +55,7 @@ public class FileTransferWebdavProvider implements WebdavService.Provider
         return new FileTransferFolderResource(folder, c, path);
     }
 
-    private class FileTransferFolderResource extends FileSystemResource
+    public class FileTransferFolderResource extends FileSystemResource
     {
         Container c;
 

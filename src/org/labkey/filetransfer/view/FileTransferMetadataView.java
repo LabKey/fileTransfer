@@ -13,6 +13,8 @@ import org.labkey.filetransfer.FileTransferController;
 import org.labkey.filetransfer.FileTransferManager;
 import org.labkey.filetransfer.query.FileTransferQuerySchema;
 
+import java.util.List;
+
 /**
  * Created by susanh on 2/7/17.
  */
@@ -31,6 +33,7 @@ public class FileTransferMetadataView extends JspView
         FileTransferManager manager = FileTransferManager.get();
         if (manager.isMetadataListConfigured(context.getContainer()))
         {
+            List<String> activeFiles = FileTransferManager.get().getActiveFiles(context.getContainer());
             UserSchema schema = QueryService.get().getUserSchema(context.getUser(), context.getContainer(), FileTransferQuerySchema.NAME);
             QuerySettings settings = schema.getSettings(getViewContext(), QueryView.DATAREGIONNAME_DEFAULT, FileTransferQuerySchema.FILE_METADATA_TABLE_NAME);
             QueryView queryView = schema.createView(getViewContext(), settings, null);

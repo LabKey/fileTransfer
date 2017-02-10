@@ -22,6 +22,13 @@ import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.PropertyManager;
 import org.labkey.api.exp.list.ListDefinition;
 import org.labkey.api.exp.list.ListService;
+import org.labkey.api.webdav.WebdavResolver;
+import org.labkey.api.webdav.WebdavResolverImpl;
+import org.labkey.api.util.Path;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileTransferManager
 {
@@ -94,6 +101,45 @@ public class FileTransferManager
     {
         PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
         return map.get(ENDPOINT_DIRECTORY);
+    }
+
+    public WebdavResolver.LookupResult getDavResource(Container container)
+    {
+        Path path =  getDavPath(container);
+        return WebdavResolverImpl.get().lookupEx(path);
+    }
+
+    public Path getDavPath(Container container)
+    {
+        List<String> subDirs = new ArrayList<>();
+        subDirs.add("_webdav");
+        subDirs.add(container.getName());
+        subDirs.add(FileTransferWebdavProvider.FILE_LINK);
+        return new Path(subDirs);
+    }
+
+    public List<String> getActiveFiles(Container container)
+    {
+        List<String> activeFiles = new ArrayList<>();
+        WebdavResolver.LookupResult lookupResult = FileTransferManager.get().getDavResource(container);
+        if (lookupResult != null && lookupResult.resource != null && lookupResult.resource instanceof FileTransferWebdavProvider.FileTransferFolderResource)
+        {
+            FileTransferWebdavProvider.FileTransferFolderResource fileResources = (FileTransferWebdavProvider.FileTransferFolderResource) lookupResult.resource;
+            File fileDirectory = fileResources.getFile();
+            if (fileDirectory != null)
+            {
+                File[] files = fileDirectory.listFiles();
+                if (files != null)
+                {
+                    for (File file : files)
+                    {
+                        if (file.isFile())
+                            activeFiles.add(file.getName());
+                    }
+                }
+            }
+        }
+        return activeFiles;
     }
 
 }
