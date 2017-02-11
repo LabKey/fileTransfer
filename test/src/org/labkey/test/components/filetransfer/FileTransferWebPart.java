@@ -37,7 +37,7 @@ public class FileTransferWebPart extends BodyWebPart<FileTransferWebPart.Element
 
     public FileTransferWebPart(WebDriver driver, int index)
     {
-        super(driver, "FileTransfer", index);
+        super(driver, "File Transfer", index);
     }
 
     public FileTransferWebPart setInput(String value)

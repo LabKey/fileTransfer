@@ -21,18 +21,31 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
+import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.InDevelopment;
-import org.labkey.test.pages.filetransfer.BeginPage;
+import org.labkey.test.pages.filetransfer.FileTransferConfigPage;
+import org.labkey.test.util.DataRegionTable;
+import org.labkey.test.util.PortalHelper;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 @Category({InDevelopment.class})
 public class FileTransferTest extends BaseWebDriverTest
 {
+    private static final String STUDY_A_FOLDER = "StudyAFolder";
+    private static final String SOURCE_FOLDER_B = "StudyBListFolder";
+    private static final String FILE_TRANSFER_FOLDER_B = "StudyBFileTransferFolder";
+    private static final String ABSENT_CONFIG_MSG ="No metadata list currently configured for this container.";
+    private static final String STUDY_A_FILE1 = "studyA_RNASeq.fasta";
+    private static final String STUDY_A_FILE2 = "studyA_conclusion.pdf";
+
+    public PortalHelper portalHelper = new PortalHelper(this);
+
     @Override
     protected void doCleanup(boolean afterTest) throws TestTimeoutException
     {
@@ -50,23 +63,84 @@ public class FileTransferTest extends BaseWebDriverTest
     private void doSetup()
     {
         _containerHelper.createProject(getProjectName(), null);
+        _containerHelper.enableModule("FileTransfer");
     }
 
     @Before
     public void preTest()
     {
+        if (_containerHelper.doesFolderExist(getProjectName(), getProjectName(), STUDY_A_FOLDER))
+            _containerHelper.deleteFolder(getProjectName(), STUDY_A_FOLDER);
+        if (_containerHelper.doesFolderExist(getProjectName(), getProjectName(), FILE_TRANSFER_FOLDER_B))
+            _containerHelper.deleteFolder(getProjectName(), FILE_TRANSFER_FOLDER_B);
+        if (_containerHelper.doesFolderExist(getProjectName(), getProjectName(), SOURCE_FOLDER_B))
+            _containerHelper.deleteFolder(getProjectName(), SOURCE_FOLDER_B);
         goToProjectHome();
     }
 
     @Test
-    public void testFileTransferModule()
+    public void testFileTransferSetup()
     {
-        _containerHelper.enableModule("FileTransfer");
-        BeginPage beginPage = BeginPage.beginAt(this, getProjectName());
-        assertEquals(200, getResponseCode());
-        final String expectedHello = "Hello, and welcome to the FileTransfer module.";
-        assertEquals("Wrong hello message", expectedHello, beginPage.getHelloMessage());
+        log("Verifying file listing with referencing metadata list in the same container as File Transfer web part");
+        _containerHelper.createSubfolder(getProjectName(), STUDY_A_FOLDER);
+
+        log("Import StudyAList.lists.zip into " + STUDY_A_FOLDER + " folder");
+        File listFile = TestFileUtils.getSampleData("/lists/StudyAList.lists.zip");
+        _listHelper.importListArchive(STUDY_A_FOLDER, listFile);
+        goToProjectHome();
+        clickFolder(STUDY_A_FOLDER);
+
+        log("Adding File Transfer Metadata to home page under " + STUDY_A_FOLDER + " folder");
+        portalHelper.addWebPart("File Transfer Metadata");
+
+        log("Verify web part message without exising configuration");
+        assertTextPresent(ABSENT_CONFIG_MSG);
+
+        log("Config web part on File Transfer Set-Up page");
+        portalHelper.clickWebpartMenuItem("File Transfer", "Customize");
+        FileTransferConfigPage configPage = new FileTransferConfigPage(this);
+        File studyAPath = TestFileUtils.getSampleData("/StudyA/studyA_figure1.png").getParentFile();
+        String containerPath = "/" + getProjectName() + "/" + STUDY_A_FOLDER;
+        configPage.saveConfig(studyAPath.getPath(), containerPath, "StudyA", "Filename");
+
+        clickFolder(STUDY_A_FOLDER);
+        assertTextNotPresent(ABSENT_CONFIG_MSG);
+        DataRegionTable results = new DataRegionTable("query", this);
+
+        List<String> values = results.getColumnDataAsText("Filename");
+        String columnValues = String.join(", ",values);
+        log("Column Values: " + columnValues);
+        assertTrue("File " + STUDY_A_FILE1 + " is not listed" ,values.get(0).equals(STUDY_A_FILE1));
+        assertTrue("File " + STUDY_A_FILE2 + " is not listed" ,values.get(1).equals(STUDY_A_FILE2));
+
+        log("Verify the available status for " + STUDY_A_FILE1 + ", " + STUDY_A_FILE2);
+        values = results.getColumnDataAsText("Available");
+        assertTrue("File " + STUDY_A_FILE1 + " should be available" ,values.get(0).equals("Yes"));
+        assertTrue("File " + STUDY_A_FILE2 + " should be unavailable" ,values.get(1).equals("No"));
+
     }
+
+//    @Test
+//    public void testExternalLookupList()
+//    {
+//        log("Verifying file listing with referencing metadata list in the same container as File Transfer web part");
+//        _containerHelper.createSubfolder(getProjectName(), SOURCE_FOLDER_B);
+//        File listFile = TestFileUtils.getSampleData("/lists/StudyBList.lists.zip");
+//        _listHelper.importListArchive(SOURCE_FOLDER_B, listFile);
+//        goToProjectHome();
+//
+//        _containerHelper.createSubfolder(getProjectName(), FILE_TRANSFER_FOLDER_B);
+////        BeginPage beginPage = BeginPage.beginAt(this, getProjectName());
+//        portalHelper.addWebPart("File Transfer Metadata");
+//        portalHelper.clickWebpartMenuItem("File Transfer", "Customize");
+//        FileTransferConfigPage configPage = new FileTransferConfigPage(this);
+//        File studyAPath = TestFileUtils.getSampleData("/StudyB/studyB_figure1.png").getParentFile();
+//        configPage.saveConfig(studyAPath.getPath(), "/" + getProjectName() + "/" + SOURCE_FOLDER_B, "StudyB", "Filename");
+//
+//        //TODO verify result
+//
+//        // delete folder
+//    }
 
     @Override
     protected BrowserType bestBrowser()

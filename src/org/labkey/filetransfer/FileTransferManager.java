@@ -117,11 +117,7 @@ public class FileTransferManager
 
     public Path getDavPath(Container container)
     {
-        List<String> subDirs = new ArrayList<>();
-        subDirs.add("_webdav");
-        subDirs.add(container.getName());
-        subDirs.add(FileTransferWebdavProvider.FILE_LINK);
-        return new Path(subDirs);
+        return new Path("_webdav").append(container.getParsedPath()).append(FileTransferWebdavProvider.FILE_LINK);
     }
 
     public List<String> getActiveFiles(Container container)
