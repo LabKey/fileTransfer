@@ -23,7 +23,7 @@ import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
-import org.labkey.test.categories.InDevelopment;
+import org.labkey.test.categories.Git;
 import org.labkey.test.pages.filetransfer.FileTransferConfigPage;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.PortalHelper;
@@ -34,7 +34,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
-@Category({InDevelopment.class})
+@Category({Git.class})
 public class FileTransferTest extends BaseWebDriverTest
 {
     private static final String STUDY_A_FOLDER = "StudyAFolder";
@@ -43,6 +43,8 @@ public class FileTransferTest extends BaseWebDriverTest
     private static final String ABSENT_CONFIG_MSG ="No metadata list currently configured for this container.";
     private static final String STUDY_A_FILE1 = "studyA_RNASeq.fasta";
     private static final String STUDY_A_FILE2 = "studyA_conclusion.pdf";
+    private static final String STUDY_B_FILE1 = "studyB_cDNA.seq";
+    private static final String STUDY_B_FILE3 = "studyB_rna.fasta";
 
     public PortalHelper portalHelper = new PortalHelper(this);
 
@@ -120,27 +122,42 @@ public class FileTransferTest extends BaseWebDriverTest
 
     }
 
-//    @Test
-//    public void testExternalLookupList()
-//    {
-//        log("Verifying file listing with referencing metadata list in the same container as File Transfer web part");
-//        _containerHelper.createSubfolder(getProjectName(), SOURCE_FOLDER_B);
-//        File listFile = TestFileUtils.getSampleData("/lists/StudyBList.lists.zip");
-//        _listHelper.importListArchive(SOURCE_FOLDER_B, listFile);
-//        goToProjectHome();
-//
-//        _containerHelper.createSubfolder(getProjectName(), FILE_TRANSFER_FOLDER_B);
-////        BeginPage beginPage = BeginPage.beginAt(this, getProjectName());
-//        portalHelper.addWebPart("File Transfer Metadata");
-//        portalHelper.clickWebpartMenuItem("File Transfer", "Customize");
-//        FileTransferConfigPage configPage = new FileTransferConfigPage(this);
-//        File studyAPath = TestFileUtils.getSampleData("/StudyB/studyB_figure1.png").getParentFile();
-//        configPage.saveConfig(studyAPath.getPath(), "/" + getProjectName() + "/" + SOURCE_FOLDER_B, "StudyB", "Filename");
-//
-//        //TODO verify result
-//
-//        // delete folder
-//    }
+    @Test
+    public void testExternalLookupList()
+    {
+        log("Verifying file listing with referencing metadata list in a different container from File Transfer web part");
+        _containerHelper.createSubfolder(getProjectName(), SOURCE_FOLDER_B);
+
+        log("Import StudyBList.lists.zip into " + SOURCE_FOLDER_B + " folder");
+        File listFile = TestFileUtils.getSampleData("/lists/StudyBList.lists.zip");
+        _listHelper.importListArchive(SOURCE_FOLDER_B, listFile);
+        goToProjectHome();
+
+        _containerHelper.createSubfolder(getProjectName(), FILE_TRANSFER_FOLDER_B);
+        log("Adding File Transfer Metadata to home page under " + FILE_TRANSFER_FOLDER_B + " folder");
+        portalHelper.addWebPart("File Transfer Metadata");
+
+        log("Config web part on File Transfer Set-Up page");
+        portalHelper.clickWebpartMenuItem("File Transfer", "Customize");
+        FileTransferConfigPage configPage = new FileTransferConfigPage(this);
+        File studyAPath = TestFileUtils.getSampleData("/StudyB/studyB_figure1.png").getParentFile();
+        configPage.saveConfig(studyAPath.getPath(), "/" + getProjectName() + "/" + SOURCE_FOLDER_B, "StudyB", "Filename");
+
+        clickFolder(FILE_TRANSFER_FOLDER_B);
+        DataRegionTable results = new DataRegionTable("query", this);
+
+        List<String> values = results.getColumnDataAsText("Filename");
+        String columnValues = String.join(", ",values);
+        log("Column Values: " + columnValues);
+        assertTrue("File " + STUDY_B_FILE1 + " is not listed" ,values.get(0).equals(STUDY_B_FILE1));
+        assertTrue("File " + STUDY_B_FILE3 + " is not listed" ,values.get(2).equals(STUDY_B_FILE3));
+
+        log("Verify the available status for " + STUDY_B_FILE1 + ", " + STUDY_B_FILE3);
+        values = results.getColumnDataAsText("Available");
+        assertTrue("File " + STUDY_B_FILE1 + " should be available" ,values.get(0).equals("Yes"));
+        assertTrue("File " + STUDY_B_FILE3 + " should be unavailable" ,values.get(2).equals("No"));
+
+    }
 
     @Override
     protected BrowserType bestBrowser()
