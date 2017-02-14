@@ -21,9 +21,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
+import org.labkey.test.SortDirection;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.Git;
+import org.labkey.test.components.CustomizeView;
 import org.labkey.test.pages.filetransfer.FileTransferConfigPage;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.PortalHelper;
@@ -41,10 +43,10 @@ public class FileTransferTest extends BaseWebDriverTest
     private static final String SOURCE_FOLDER_B = "StudyBListFolder";
     private static final String FILE_TRANSFER_FOLDER_B = "StudyBFileTransferFolder";
     private static final String ABSENT_CONFIG_MSG ="No metadata list currently configured for this container.";
-    private static final String STUDY_A_FILE1 = "studyA_RNASeq.fasta";
-    private static final String STUDY_A_FILE2 = "studyA_conclusion.pdf";
-    private static final String STUDY_B_FILE1 = "studyB_cDNA.seq";
-    private static final String STUDY_B_FILE3 = "studyB_rna.fasta";
+    private static final String STUDY_A_FILE_PDF = "studyA_conclusion.pdf";
+    private static final String STUDY_A_FILE_FASTA = "studyA_RNASeq.fasta";
+    private static final String STUDY_B_FILE_PNG = "studyB_figure1.png";
+    private static final String STUDY_B_FILE_FASTA = "studyB_rna.fasta";
 
     public PortalHelper portalHelper = new PortalHelper(this);
 
@@ -108,17 +110,18 @@ public class FileTransferTest extends BaseWebDriverTest
         clickFolder(STUDY_A_FOLDER);
         assertTextNotPresent(ABSENT_CONFIG_MSG);
         DataRegionTable results = new DataRegionTable("query", this);
+        addSort(results, "Status", true);
 
         List<String> values = results.getColumnDataAsText("Filename");
         String columnValues = String.join(", ",values);
         log("Column Values: " + columnValues);
-        assertTrue("File " + STUDY_A_FILE1 + " is not listed" ,values.get(0).equals(STUDY_A_FILE1));
-        assertTrue("File " + STUDY_A_FILE2 + " is not listed" ,values.get(1).equals(STUDY_A_FILE2));
+        assertTrue("File " + STUDY_A_FILE_PDF + " is not listed" ,values.get(0).equals(STUDY_A_FILE_PDF));
+        assertTrue("File " + STUDY_A_FILE_FASTA + " is not listed" ,values.get(1).equals(STUDY_A_FILE_FASTA));
 
-        log("Verify the available status for " + STUDY_A_FILE1 + ", " + STUDY_A_FILE2);
+        log("Verify the available status for " + STUDY_A_FILE_PDF + ", " + STUDY_A_FILE_FASTA);
         values = results.getColumnDataAsText("Available");
-        assertTrue("File " + STUDY_A_FILE1 + " should be available" ,values.get(0).equals("Yes"));
-        assertTrue("File " + STUDY_A_FILE2 + " should be unavailable" ,values.get(1).equals("No"));
+        assertTrue("File " + STUDY_A_FILE_PDF + " should be unavailable" ,values.get(0).equals("No"));
+        assertTrue("File " + STUDY_A_FILE_FASTA + " should be available" ,values.get(1).equals("Yes"));
 
     }
 
@@ -145,18 +148,27 @@ public class FileTransferTest extends BaseWebDriverTest
 
         clickFolder(FILE_TRANSFER_FOLDER_B);
         DataRegionTable results = new DataRegionTable("query", this);
+        addSort(results, "Status", true);
 
         List<String> values = results.getColumnDataAsText("Filename");
         String columnValues = String.join(", ",values);
         log("Column Values: " + columnValues);
-        assertTrue("File " + STUDY_B_FILE1 + " is not listed" ,values.get(0).equals(STUDY_B_FILE1));
-        assertTrue("File " + STUDY_B_FILE3 + " is not listed" ,values.get(2).equals(STUDY_B_FILE3));
+        assertTrue("File " + STUDY_B_FILE_FASTA + " is not listed" ,values.get(0).equals(STUDY_B_FILE_FASTA));
+        assertTrue("File " + STUDY_B_FILE_PNG + " is not listed" ,values.get(1).equals(STUDY_B_FILE_PNG));
 
-        log("Verify the available status for " + STUDY_B_FILE1 + ", " + STUDY_B_FILE3);
+        log("Verify the available status for " + STUDY_B_FILE_FASTA + ", " + STUDY_B_FILE_PNG);
         values = results.getColumnDataAsText("Available");
-        assertTrue("File " + STUDY_B_FILE1 + " should be available" ,values.get(0).equals("Yes"));
-        assertTrue("File " + STUDY_B_FILE3 + " should be unavailable" ,values.get(2).equals("No"));
+        assertTrue("File " + STUDY_B_FILE_FASTA + " should be unavailable" ,values.get(0).equals("No"));
+        assertTrue("File " + STUDY_B_FILE_PNG + " should be available" ,values.get(1).equals("Yes"));
 
+    }
+
+    public void addSort(DataRegionTable table, String columnName, boolean isDescending)
+    {
+        CustomizeView helper = table.getCustomizeView();
+        helper.openCustomizeViewPanel();
+        helper.addSort(columnName, isDescending ? SortDirection.DESC : SortDirection.ASC);
+        helper.saveCustomView();
     }
 
     @Override
