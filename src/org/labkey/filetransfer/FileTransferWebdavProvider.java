@@ -57,13 +57,13 @@ public class FileTransferWebdavProvider implements WebdavService.Provider
 
     public class FileTransferFolderResource extends FileSystemResource
     {
-        Container c;
+        Container _c;
 
         FileTransferFolderResource(WebdavResource parent, Container c, String path)
         {
             super(parent.getPath(), FILE_LINK);
 
-            this.c = c;
+            this._c = c;
             _containerId = c.getId();
 
             _files = new ArrayList<>();
@@ -85,9 +85,9 @@ public class FileTransferWebdavProvider implements WebdavService.Provider
         }
 
         @Override
-        protected boolean hasAccess(User user) //TODO do we need folder permission to allow listing?
+        protected boolean hasAccess(User user)
         {
-            return user.isSiteAdmin() || c.getPolicy().getPermissions(user).size() > 0;
+            return user.isSiteAdmin() || this._c.getPolicy().getPermissions(user).size() > 0;
         }
 
         @Override

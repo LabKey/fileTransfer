@@ -62,8 +62,6 @@ public class FileTransferModule extends DefaultModule
     @Override
     protected void doStartup(ModuleContext moduleContext)
     {
-        // add a container listener so we'll know when our container is deleted:
-        ContainerManager.addContainerListener(new FileTransferContainerListener());
     }
 
     @Override
@@ -82,10 +80,4 @@ public class FileTransferModule extends DefaultModule
         return Collections.singleton(SCHEMA_NAME);
     }
 
-    @Override
-    @NotNull
-    public Collection<String> getSummary(Container c)
-    {
-        return Collections.emptyList();
-    }
 }

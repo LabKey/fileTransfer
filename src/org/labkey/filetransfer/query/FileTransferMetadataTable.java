@@ -31,7 +31,10 @@ public class FileTransferMetadataTable extends FilteredTable<UserSchema>
         getColumn("Created").setHidden(true);
         getColumn("Container").setHidden(true);
 
-        ColumnInfo availabilityColumn = wrapColumn("Available", new ColumnInfo(getRealTable().getColumn( FileTransferManager.get().getFileNameColumn(getContainer()))));
+        ColumnInfo fromColumn = getRealTable().getColumn( FileTransferManager.get().getFileNameColumn(getContainer()));
+        if (fromColumn == null)
+            return;
+        ColumnInfo availabilityColumn = wrapColumn("Available", new ColumnInfo(fromColumn));
         addColumn(availabilityColumn);
         availabilityColumn.setDisplayColumnFactory(colInfo -> new DataColumn(colInfo)
         {
