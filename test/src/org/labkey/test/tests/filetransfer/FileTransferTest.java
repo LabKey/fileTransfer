@@ -23,6 +23,7 @@ import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
+import org.labkey.test.categories.FileTransfer;
 import org.labkey.test.categories.Git;
 import org.labkey.test.pages.filetransfer.FileTransferConfigPage;
 import org.labkey.test.util.DataRegionTable;
@@ -34,7 +35,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
-@Category({Git.class})
+@Category({Git.class, FileTransfer.class})
 public class FileTransferTest extends BaseWebDriverTest
 {
     private static final String STUDY_A_FOLDER = "StudyAFolder";
