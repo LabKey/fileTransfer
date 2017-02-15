@@ -25,7 +25,7 @@ public class FileTransferMetadataView extends JspView
         super("/org/labkey/filetransfer/view/fileList.jsp");
         setTitle("File Transfer");
 
-        if (context.getContainer().hasPermission(context.getUser(), AdminPermission.class))
+        if (context.getUser().isSiteAdmin())
         {
             NavTree setUp = new NavTree("Set up", new ActionURL(FileTransferController.ConfigurationAction.class, context.getContainer()).toString(), null, "fa fa-pencil");
             setCustomize(setUp);
