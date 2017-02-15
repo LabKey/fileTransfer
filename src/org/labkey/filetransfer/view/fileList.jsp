@@ -35,7 +35,7 @@
     else
     {
 %>
-No metadata list currently configured for this container. Use "Customize" option from web part drop down menu to configure metadata list.
+No metadata list currently configured for this container. To set up, click the File Transfer drop-down and select "Customize" (available only to those with Site Administrator permissions).
 
 <%
     }

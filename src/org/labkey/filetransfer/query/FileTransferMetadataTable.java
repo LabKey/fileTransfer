@@ -24,6 +24,7 @@ public class FileTransferMetadataTable extends FilteredTable<UserSchema>
     {
         super(table, userSchema, ContainerFilter.EVERYTHING);
         wrapAllColumns(true);
+        setDetailsURL(null);
 
         getColumn("CreatedBy").setHidden(true);
         getColumn("Modified").setHidden(true);
@@ -47,7 +48,37 @@ public class FileTransferMetadataTable extends FilteredTable<UserSchema>
                 else
                     out.write("No");
             }
+
+            @Override
+            public void renderDetailsCellContents(RenderContext ctx, Writer out) throws IOException
+            {
+                renderGridCellContents(ctx, out);
+            }
+
+            @Override
+            public boolean isFilterable()
+            {
+                return false;
+            }
+
+            @Override
+            public boolean isSortable()
+            {
+                return false;
+            }
+
+            @Override
+            public boolean isQueryColumn()
+            {
+                return false;
+            }
         });
 
+    }
+
+    @Override
+    public boolean hasDetailsURL()
+    {
+        return false;
     }
 }

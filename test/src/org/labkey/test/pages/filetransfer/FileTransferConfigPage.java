@@ -45,14 +45,14 @@ public class FileTransferConfigPage extends LabKeyPage
     {
         waitForElement(Locator.css(".query-loaded-marker"));
         shortWait().until(LabKeyExpectedConditions.elementIsEnabled(tableInput));
-        _ext4Helper.selectComboBoxItem("Table:", table);
+        _ext4Helper.selectComboBoxItem("List:", table);
     }
 
     public void setField(String column)
     {
         waitForElement(Locator.css(".column-loaded-marker"));
         shortWait().until(LabKeyExpectedConditions.elementIsEnabled(fieldInput));
-        _ext4Helper.selectComboBoxItem("Filename Field:", column);
+        _ext4Helper.selectComboBoxItem("File Name Field:", column);
     }
 
     public void save()

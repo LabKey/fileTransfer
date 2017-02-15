@@ -52,7 +52,7 @@
             width: 510,
             hidden: false,
             disabled: false,
-            fieldLabel: "Endpoint Directory",
+            fieldLabel: "Local Folder Path",
             initialValue : <%=q(bean.getEndpointPath())%>,
             value: <%=q(bean.getEndpointPath())%>,
             allowBlank: false
@@ -96,7 +96,7 @@
             name: 'queryName',
             forceSelection: true,
             defaultSchema: 'lists',
-            fieldLabel: 'Table',
+            fieldLabel: 'List',
             labelWidth: 150,
             allowBlank: false,
             initialValue : <%=q(bean.getQueryName())%>,
@@ -106,7 +106,7 @@
 
         var columnComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeColumnComboConfig({
             name: 'columnName',
-            fieldLabel: 'Filename Field',
+            fieldLabel: 'File Name Field',
             forceSelection: true,
             labelWidth: 150,
             allowBlank: false,
