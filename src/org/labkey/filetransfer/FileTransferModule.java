@@ -44,6 +44,12 @@ public class FileTransferModule extends DefaultModule
     }
 
     @Override
+    public double getVersion()
+    {
+        return 17.10;
+    }
+
+    @Override
     @NotNull
     protected Collection<WebPartFactory> createWebPartFactories()
     {
