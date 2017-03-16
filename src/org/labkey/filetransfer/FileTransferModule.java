@@ -21,6 +21,7 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
+import org.labkey.api.module.ModuleProperty;
 import org.labkey.api.view.SimpleWebPartFactory;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.api.webdav.WebdavService;
@@ -36,6 +37,8 @@ public class FileTransferModule extends DefaultModule
 {
     public static final String NAME = "FileTransfer";
     public static final String SCHEMA_NAME = "fileTransfer";
+    public static final String FILE_TRANSFER_SERVICE_BASE_URL = "FileTransferServiceBaseUrl";
+    public static final String FILE_TRANSFER_SOURCE_ENDPOINT_ID = "FileTransferSourceEndpointId";
 
     @Override
     public String getName()
@@ -68,6 +71,15 @@ public class FileTransferModule extends DefaultModule
     @Override
     protected void doStartup(ModuleContext moduleContext)
     {
+        ModuleProperty serviceBaseUrlProp = new ModuleProperty(this, FILE_TRANSFER_SERVICE_BASE_URL);
+        serviceBaseUrlProp.setCanSetPerContainer(true);
+        serviceBaseUrlProp.setDescription("Field for storing the base URL for file transfer service (for example, globus.org/app/transfer).");
+        this.addModuleProperty(serviceBaseUrlProp);
+
+        ModuleProperty sourceEndpointIdProp = new ModuleProperty(this, FILE_TRANSFER_SOURCE_ENDPOINT_ID);
+        sourceEndpointIdProp.setCanSetPerContainer(true);
+        sourceEndpointIdProp.setDescription("Field for storing the endpoint Id of the source endpoint.");
+        this.addModuleProperty(sourceEndpointIdProp);
     }
 
     @Override

@@ -46,16 +46,27 @@
 
     Ext4.onReady(function()
     {
+        var containingFilesHeader = Ext4.create('Ext.form.Label', {
+            text: 'Set Up Folder Path Container Files',
+            style: 'font-weight: bold;'
+        });
+
         var endpointField = Ext4.create('Ext.form.field.Text', {
             name: "endpointPath",
             labelWidth: 150,
             width: 510,
+            padding: '10px 0 25px 0',
             hidden: false,
             disabled: false,
             fieldLabel: "Local Folder Path",
             initialValue : <%=q(bean.getEndpointPath())%>,
             value: <%=q(bean.getEndpointPath())%>,
             allowBlank: false
+        });
+
+        var referenceListHeader = Ext4.create('Ext.form.Label', {
+            text: 'Set Up Reference List',
+            style: 'font-weight: bold;'
         });
 
         var sqvModel = Ext4.create('LABKEY.sqv.Model', {});
@@ -71,6 +82,7 @@
             fieldLabel: 'Reference List Folder',
             editable: false,
             width: 510,
+            padding: '10px 0 0 0',
             allowBlank: false,
             initialValue : <%=q(bean.getLookupContainer())%>,
             value : <%=q(bean.getLookupContainer())%>,
@@ -89,7 +101,8 @@
             fieldLabel: 'Schema',
             value: 'lists',
             disabled: true,
-            width: 300
+            width: 300,
+            padding: '10px 0 0 0'
         });
 
         var queryComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeQueryComboConfig({
@@ -101,7 +114,8 @@
             allowBlank: false,
             initialValue : <%=q(bean.getQueryName())%>,
             value : <%=q(bean.getQueryName())%>,
-            width: 300
+            width: 300,
+            padding: '10px 0 0 0'
         }));
 
         var columnComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeColumnComboConfig({
@@ -113,8 +127,32 @@
             initialValue : <%=q(bean.getColumnName())%>,
             value : <%=q(bean.getColumnName())%>,
             margin: '0, 0, 20, 0',
-            width: 300
+            width: 300,
+            padding: '10px 0 25px 0'
         }));
+
+        var transferSourceHeader = Ext4.create('Ext.form.Label', {
+            text: 'Set Up Filer Transfer Source',
+            style: 'font-weight: bold;'
+        });
+
+        var globusGenomicsField = Ext4.create('Ext.form.field.Radio', {
+            name: 'useGlobusGenomics',
+            boxLabel: 'Use Globus Genomics File Transfer Endpoint for Folder Path',
+            checked: true,
+            fieldStyle: 'font-size: 14px;',
+            padding: '10px 0'
+        });
+
+        var sourceEndpointDirField = Ext4.create('Ext.form.field.Text', {
+            name: "sourceEndpointDir",
+            labelWidth: 175,
+            width: 490,
+            padding: '0 0 25px 20px',
+            fieldLabel: "Source Endpoint Directory",
+            initialValue : <%=q(bean.getSourceEndpointDir())%>,
+            value: <%=q(bean.getSourceEndpointDir())%>
+        });
 
         var cancelButton = Ext4.create('Ext.button.Button', {
             text: 'Cancel',
@@ -152,12 +190,17 @@
             cls: 'configFormPanel',
             width: 520,
             items : [
+                containingFilesHeader,
                 endpointField,
+                referenceListHeader,
                 containerIdTextField,
                 containerComboField,
                 schemaComboField,
                 queryComboField,
                 columnComboField,
+                transferSourceHeader,
+                globusGenomicsField,
+                sourceEndpointDirField,
                 { xtype: 'hidden', name: 'X-LABKEY-CSRF', value: LABKEY.CSRF }
             ],
             buttons: [
