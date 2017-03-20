@@ -24,8 +24,8 @@ public class FileTransferConfigPage extends LabKeyPage
     {
         setEndpointPath(path);
         setReferenceListFolder(folder);
-        setTable(table);
-        setField(field);
+        setReferenceListTable(table);
+        setReferenceListField(field);
         save();
     }
 
@@ -38,17 +38,17 @@ public class FileTransferConfigPage extends LabKeyPage
     public void setReferenceListFolder(String referenceListFolder)
     {
         waitForElement(Locator.css(".containers-loaded-marker"));
-        _ext4Helper.selectComboBoxItem("Reference List Folder:", referenceListFolder);
+        _ext4Helper.selectComboBoxItem("Folder:", referenceListFolder);
     }
 
-    public void setTable(String table)
+    public void setReferenceListTable(String table)
     {
         waitForElement(Locator.css(".query-loaded-marker"));
         shortWait().until(LabKeyExpectedConditions.elementIsEnabled(tableInput));
         _ext4Helper.selectComboBoxItem("List:", table);
     }
 
-    public void setField(String column)
+    public void setReferenceListField(String column)
     {
         waitForElement(Locator.css(".column-loaded-marker"));
         shortWait().until(LabKeyExpectedConditions.elementIsEnabled(fieldInput));
