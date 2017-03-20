@@ -100,7 +100,7 @@ public class FileTransferTest extends BaseWebDriverTest
         log("Verify web part message without exising configuration");
         assertTextPresent(ABSENT_CONFIG_MSG);
 
-        log("Config web part on File Transfer Set-Up page");
+        log("Config web part on File Transfer Customize page");
         portalHelper.clickWebpartMenuItem("File Transfer", "Customize");
         FileTransferConfigPage configPage = new FileTransferConfigPage(this);
         File studyAPath = TestFileUtils.getSampleData("/StudyA/studyA_figure1.png").getParentFile();
@@ -140,7 +140,7 @@ public class FileTransferTest extends BaseWebDriverTest
         log("Adding File Transfer Metadata to home page under " + FILE_TRANSFER_FOLDER_B + " folder");
         portalHelper.addWebPart("File Transfer Metadata");
 
-        log("Config web part on File Transfer Set-Up page");
+        log("Config web part on File Transfer Customize page");
         portalHelper.clickWebpartMenuItem("File Transfer", "Customize");
         FileTransferConfigPage configPage = new FileTransferConfigPage(this);
         File studyAPath = TestFileUtils.getSampleData("/StudyB/studyB_figure1.png").getParentFile();

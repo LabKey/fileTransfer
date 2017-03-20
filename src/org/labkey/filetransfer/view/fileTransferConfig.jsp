@@ -46,8 +46,14 @@
 
     Ext4.onReady(function()
     {
+        var getFieldHoverText = function(title, details) {
+            return '<a href="#" onclick="return showHelpDiv(this, \'' + title + '\', \'' + details + '\');" '
+                    + 'onmouseover="return showHelpDivDelay(this, \'' + title + '\', \'' + details + '\');" '
+                    + 'onmouseout="return hideHelpDivDelay();"><span class="labkey-help-pop-up">?</span></a>';
+        };
+
         var containingFilesHeader = Ext4.create('Ext.form.Label', {
-            text: 'Set Up Folder Path Container Files',
+            text: 'Files Directory Path',
             style: 'font-weight: bold;'
         });
 
@@ -65,7 +71,7 @@
         });
 
         var referenceListHeader = Ext4.create('Ext.form.Label', {
-            text: 'Set Up Reference List',
+            text: 'Reference List',
             style: 'font-weight: bold;'
         });
 
@@ -79,7 +85,7 @@
         var containerComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeContainerComboConfig({
             name: 'lookupContainer',
             labelWidth: 150,
-            fieldLabel: 'Reference List Folder',
+            fieldLabel: 'Folder',
             editable: false,
             width: 510,
             padding: '10px 0 0 0',
@@ -132,24 +138,17 @@
         }));
 
         var transferSourceHeader = Ext4.create('Ext.form.Label', {
-            text: 'Set Up Filer Transfer Source',
+            text: 'Globus Genomics File Transfer Source',
             style: 'font-weight: bold;'
-        });
-
-        var globusGenomicsField = Ext4.create('Ext.form.field.Radio', {
-            name: 'useGlobusGenomics',
-            boxLabel: 'Use Globus Genomics File Transfer Endpoint for Folder Path',
-            checked: true,
-            fieldStyle: 'font-size: 14px;',
-            padding: '10px 0'
         });
 
         var sourceEndpointDirField = Ext4.create('Ext.form.field.Text', {
             name: "sourceEndpointDir",
-            labelWidth: 175,
-            width: 490,
-            padding: '0 0 25px 20px',
-            fieldLabel: "Source Endpoint Directory",
+            labelWidth: 150,
+            width: 510,
+            padding: '10px 0 25px 0',
+            fieldLabel: "Endpoint Directory" + getFieldHoverText('Endpoint Directory', 'Specify the directory on the '
+                    + 'Globus Genomics endpoint that contains the files for this webpart.'),
             initialValue : <%=q(bean.getSourceEndpointDir())%>,
             value: <%=q(bean.getSourceEndpointDir())%>
         });
@@ -199,7 +198,6 @@
                 queryComboField,
                 columnComboField,
                 transferSourceHeader,
-                globusGenomicsField,
                 sourceEndpointDirField,
                 { xtype: 'hidden', name: 'X-LABKEY-CSRF', value: LABKEY.CSRF }
             ],

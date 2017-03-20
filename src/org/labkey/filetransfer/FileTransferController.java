@@ -69,7 +69,7 @@ public class FileTransferController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            root.addChild("File Transfer Set-Up");
+            root.addChild("File Transfer: Customize");
             return root;
         }
 

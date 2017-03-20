@@ -16,6 +16,7 @@
 
 package org.labkey.filetransfer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
@@ -164,5 +165,24 @@ public class FileTransferManager
     {
         Module module = ModuleLoader.getInstance().getModule(FileTransferModule.NAME);
         return module.getModuleProperties().get(FileTransferModule.FILE_TRANSFER_SOURCE_ENDPOINT_ID).getEffectiveValue(container);
+    }
+
+    public String getGlobusGenomicsTransferUrl(Container container)
+    {
+        String baseUrl = getServiceBaseUrl(container);
+        String endpointId = getSourceEndpointId(container);
+        if (StringUtils.isNotBlank(baseUrl) && StringUtils.isNotBlank(endpointId))
+        {
+            // ex: https://www.globus.org/app/transfer?origin_id=<ENDPOINT_ID>&origin_path=<ENDPOINT_DIR>
+            String transferUrl = baseUrl.trim() + (!baseUrl.trim().endsWith("?") ? "?" : "") + "origin_id=" + endpointId.trim();
+
+            String endpointDir = getSourceEndpointDir(container);
+            if (StringUtils.isNotBlank(endpointDir))
+                transferUrl += "&origin_path=" + endpointDir.trim();
+
+            return transferUrl;
+        }
+
+        return null;
     }
 }
