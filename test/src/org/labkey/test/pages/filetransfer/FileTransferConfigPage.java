@@ -14,6 +14,7 @@ public class FileTransferConfigPage extends LabKeyPage
     public static Locator.XPathLocator folderInput = Locator.xpath("//input[@name='lookupContainer']");
     public static Locator.XPathLocator tableInput = Locator.xpath("//input[@name='queryName']");
     public static Locator.XPathLocator fieldInput = Locator.xpath("//input[@name='columnName']");
+    public static Locator.XPathLocator sourceEndpointDirInput = Locator.xpath("//input[@name='sourceEndpointDir']");
 
     public FileTransferConfigPage(WrapsDriver test)
     {
@@ -55,6 +56,12 @@ public class FileTransferConfigPage extends LabKeyPage
         _ext4Helper.selectComboBoxItem("File Name Field:", column);
     }
 
+    public void setSourceEndpointDir(String sourceEndpointDir)
+    {
+        waitForElement(sourceEndpointDirInput);
+        setFormElement(sourceEndpointDirInput, sourceEndpointDir);
+    }
+
     public void save()
     {
         clickButton("Save");
@@ -62,7 +69,6 @@ public class FileTransferConfigPage extends LabKeyPage
 
     public String getEndpointPath()
     {
-
         waitForElement(endpointPathInput);
         return getFormElement(endpointPathInput);
     }
@@ -86,5 +92,11 @@ public class FileTransferConfigPage extends LabKeyPage
         waitForElement(Locator.css(".column-loaded-marker"));
         waitForElement(fieldInput);
         return getFormElement(fieldInput);
+    }
+
+    public String getSourceEndpointDir()
+    {
+        waitForElement(sourceEndpointDirInput);
+        return getFormElement(sourceEndpointDirInput);
     }
 }
