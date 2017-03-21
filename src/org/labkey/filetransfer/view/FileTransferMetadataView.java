@@ -61,7 +61,11 @@ public class FileTransferMetadataView extends JspView
             {
                 StringExpression url = StringExpressionFactory.createURL(transferLinkUrl);
                 if (url != null)
-                    bar.add(new ActionButton("Open Transfer Link", url));
+                {
+                    ActionButton transferBtn = new ActionButton("Open Transfer Link", url);
+                    transferBtn.setTarget("_blank");
+                    bar.add(transferBtn);
+                }
             }
         }
     }
