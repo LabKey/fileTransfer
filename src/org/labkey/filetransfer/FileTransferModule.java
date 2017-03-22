@@ -73,7 +73,7 @@ public class FileTransferModule extends DefaultModule
     {
         ModuleProperty serviceBaseUrlProp = new ModuleProperty(this, FILE_TRANSFER_SERVICE_BASE_URL);
         serviceBaseUrlProp.setLabel("Service Base URL");
-        serviceBaseUrlProp.setDescription("Field for storing the base URL for file transfer service. Example: globus.org/app/transfer.");
+        serviceBaseUrlProp.setDescription("Field for storing the base URL for the file transfer service. Example: https://www.globus.org/app/transfer.");
         serviceBaseUrlProp.setCanSetPerContainer(true);
         serviceBaseUrlProp.setShowDescriptionInline(true);
         serviceBaseUrlProp.setInputFieldWidth(600);
@@ -81,7 +81,7 @@ public class FileTransferModule extends DefaultModule
 
         ModuleProperty sourceEndpointIdProp = new ModuleProperty(this, FILE_TRANSFER_SOURCE_ENDPOINT_ID);
         sourceEndpointIdProp.setLabel("Source Endpoint ID");
-        sourceEndpointIdProp.setDescription("Field for storing the endpoint Id of the source endpoint.");
+        sourceEndpointIdProp.setDescription("Field for storing the unique identifier of the source endpoint.");
         sourceEndpointIdProp.setCanSetPerContainer(true);
         sourceEndpointIdProp.setShowDescriptionInline(true);
         this.addModuleProperty(sourceEndpointIdProp);

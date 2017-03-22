@@ -91,8 +91,6 @@ public class FileTransferTest extends BaseWebDriverTest
     {
         log("Verifying file listing with referencing metadata list in the same container as File Transfer web part");
         createFolderAndImportListArchive(STUDY_A_FOLDER, STUDY_A_LIST_ARCHIVE);
-
-        log("Adding File Transfer Metadata to home page under " + STUDY_A_FOLDER + " folder");
         addFileTransferMetadataWebpart(STUDY_A_FOLDER);
 
         log("Config web part on File Transfer Customize page");
@@ -118,8 +116,6 @@ public class FileTransferTest extends BaseWebDriverTest
     {
         log("Verifying file listing with referencing metadata list in a different container from File Transfer web part");
         createFolderAndImportListArchive(STUDY_B_FOLDER, STUDY_B_LIST_ARCHIVE);
-
-        log("Adding File Transfer Metadata to home page under " + STUDY_B_FILE_TRANSFER_FOLDER + " folder");
         _containerHelper.createSubfolder(getProjectName(), STUDY_B_FILE_TRANSFER_FOLDER);
         addFileTransferMetadataWebpart(STUDY_B_FILE_TRANSFER_FOLDER);
 
@@ -151,20 +147,18 @@ public class FileTransferTest extends BaseWebDriverTest
 
         log("Verifying File Transfer web part 'Open Transfer Link' button");
         createFolderAndImportListArchive(STUDY_C_FOLDER, STUDY_A_LIST_ARCHIVE);
-
-        log("Fail test now if the 'Site Default' is set for the FileTransfer module properties.");
-        String siteServiceBaseUrl = getModulePropertyValue(new ModulePropertyValue("FileTransfer", "/", "FileTransferServiceBaseUrl", null));
-        String siteSourceEndpointId = getModulePropertyValue(new ModulePropertyValue("FileTransfer", "/", "FileTransferSourceEndpointId", null));
-        if (!StringUtils.isEmpty(siteServiceBaseUrl) || !StringUtils.isEmpty(siteSourceEndpointId))
-            fail("FileTransfer module properties 'Site Default' values have been set which will cause issues with this test. Please clear those values and run the test again.");
-
-        log("Adding File Transfer Metadata to home page under " + STUDY_C_FOLDER + " folder");
         addFileTransferMetadataWebpart(STUDY_C_FOLDER);
 
         log("Initial config of File Transfer webpart, verify 'Open Transfer Link' not shown");
         String studyPath = TestFileUtils.getSampleData("/StudyA/studyA_figure1.png").getParentFile().getPath();
         DataRegionTable results = initialFileTransferWebpartConfig(studyPath, containerPath, "StudyA", "Filename");
         assertElementNotPresent(TRANSFER_LINK_BTN);
+
+        log("Fail test now if the 'Site Default' is set for the FileTransfer module properties.");
+        String siteServiceBaseUrl = getModulePropertyValue(new ModulePropertyValue("FileTransfer", "/", "FileTransferServiceBaseUrl", null));
+        String siteSourceEndpointId = getModulePropertyValue(new ModulePropertyValue("FileTransfer", "/", "FileTransferSourceEndpointId", null));
+        if (!StringUtils.isEmpty(siteServiceBaseUrl) || !StringUtils.isEmpty(siteSourceEndpointId))
+            fail("FileTransfer module properties 'Site Default' values have been set which will cause issues with this test. Please clear those values and run the test again.");
 
         log("Set project level module properties, verify 'Open Transfer Link' href");
         String sourceEndpointId = "projectOrigin";
@@ -199,6 +193,7 @@ public class FileTransferTest extends BaseWebDriverTest
 
     private void addFileTransferMetadataWebpart(String container)
     {
+        log("Adding File Transfer Metadata to home page under " + container + " folder");
         clickFolder(container);
         portalHelper.addWebPart("File Transfer Metadata");
 
