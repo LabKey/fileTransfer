@@ -181,8 +181,8 @@ public class FileTransferTest extends BaseWebDriverTest
         FileTransferConfigPage configPage = new FileTransferConfigPage(this);
         configPage.setSourceEndpointDir(sourceEndpointDir);
         configPage.save();
-        verifyTransferFileLinkBtnHref(STUDY_C_FOLDER, containerServiceBaseUrl
-                + "?origin_id=" + sourceEndpointId + "&origin_path=" + sourceEndpointDir.replaceAll(" ", "%20"));
+        verifyTransferFileLinkBtnHref(STUDY_C_FOLDER, containerServiceBaseUrl + "?origin_id=" + sourceEndpointId
+                + "&origin_path=" + sourceEndpointDir.replaceAll(" ", "%20").replaceAll("/", "%2F"));
     }
 
     private void createFolderAndImportListArchive(String container, File listArchive)

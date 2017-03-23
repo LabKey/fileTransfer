@@ -25,6 +25,7 @@ import org.labkey.api.exp.list.ListDefinition;
 import org.labkey.api.exp.list.ListService;
 import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
+import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.webdav.WebdavResolver;
 import org.labkey.api.webdav.WebdavResolverImpl;
 import org.labkey.api.util.Path;
@@ -174,11 +175,12 @@ public class FileTransferManager
         if (StringUtils.isNotBlank(baseUrl) && StringUtils.isNotBlank(endpointId))
         {
             // ex: https://www.globus.org/app/transfer?origin_id=<ENDPOINT_ID>&origin_path=<ENDPOINT_DIR>
-            String transferUrl = baseUrl.trim() + (!baseUrl.trim().endsWith("?") ? "?" : "") + "origin_id=" + endpointId.trim();
+            String transferUrl = baseUrl.trim() + (!baseUrl.trim().endsWith("?") ? "?" : "")
+                    + "origin_id=" + PageFlowUtil.encode(endpointId.trim());
 
             String endpointDir = getSourceEndpointDir(container);
             if (StringUtils.isNotBlank(endpointDir))
-                transferUrl += "&origin_path=" + endpointDir.trim();
+                transferUrl += "&origin_path=" + PageFlowUtil.encode(endpointDir.trim());
 
             return transferUrl;
         }
