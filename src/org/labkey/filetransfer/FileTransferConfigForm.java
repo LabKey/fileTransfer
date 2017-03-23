@@ -11,6 +11,7 @@ public class FileTransferConfigForm extends ReturnUrlForm
     private String lookupContainer;
     private String queryName;
     private String columnName;
+    private String sourceEndpointDir;
 
     public String getEndpointPath()
     {
@@ -52,4 +53,13 @@ public class FileTransferConfigForm extends ReturnUrlForm
         this.columnName = columnName;
     }
 
+    public String getSourceEndpointDir()
+    {
+        return sourceEndpointDir;
+    }
+
+    public void setSourceEndpointDir(String sourceEndpointDir)
+    {
+        this.sourceEndpointDir = sourceEndpointDir;
+    }
 }

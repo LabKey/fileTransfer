@@ -14,6 +14,7 @@ public class FileTransferConfigPage extends LabKeyPage
     public static Locator.XPathLocator folderInput = Locator.xpath("//input[@name='lookupContainer']");
     public static Locator.XPathLocator tableInput = Locator.xpath("//input[@name='queryName']");
     public static Locator.XPathLocator fieldInput = Locator.xpath("//input[@name='columnName']");
+    public static Locator.XPathLocator sourceEndpointDirInput = Locator.xpath("//input[@name='sourceEndpointDir']");
 
     public FileTransferConfigPage(WrapsDriver test)
     {
@@ -24,8 +25,8 @@ public class FileTransferConfigPage extends LabKeyPage
     {
         setEndpointPath(path);
         setReferenceListFolder(folder);
-        setTable(table);
-        setField(field);
+        setReferenceListTable(table);
+        setReferenceListField(field);
         save();
     }
 
@@ -38,21 +39,27 @@ public class FileTransferConfigPage extends LabKeyPage
     public void setReferenceListFolder(String referenceListFolder)
     {
         waitForElement(Locator.css(".containers-loaded-marker"));
-        _ext4Helper.selectComboBoxItem("Reference List Folder:", referenceListFolder);
+        _ext4Helper.selectComboBoxItem("Folder:", referenceListFolder);
     }
 
-    public void setTable(String table)
+    public void setReferenceListTable(String table)
     {
         waitForElement(Locator.css(".query-loaded-marker"));
         shortWait().until(LabKeyExpectedConditions.elementIsEnabled(tableInput));
         _ext4Helper.selectComboBoxItem("List:", table);
     }
 
-    public void setField(String column)
+    public void setReferenceListField(String column)
     {
         waitForElement(Locator.css(".column-loaded-marker"));
         shortWait().until(LabKeyExpectedConditions.elementIsEnabled(fieldInput));
         _ext4Helper.selectComboBoxItem("File Name Field:", column);
+    }
+
+    public void setSourceEndpointDir(String sourceEndpointDir)
+    {
+        waitForElement(sourceEndpointDirInput);
+        setFormElement(sourceEndpointDirInput, sourceEndpointDir);
     }
 
     public void save()
@@ -62,7 +69,6 @@ public class FileTransferConfigPage extends LabKeyPage
 
     public String getEndpointPath()
     {
-
         waitForElement(endpointPathInput);
         return getFormElement(endpointPathInput);
     }
@@ -86,5 +92,11 @@ public class FileTransferConfigPage extends LabKeyPage
         waitForElement(Locator.css(".column-loaded-marker"));
         waitForElement(fieldInput);
         return getFormElement(fieldInput);
+    }
+
+    public String getSourceEndpointDir()
+    {
+        waitForElement(sourceEndpointDirInput);
+        return getFormElement(sourceEndpointDirInput);
     }
 }

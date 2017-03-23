@@ -69,7 +69,7 @@ public class FileTransferController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            root.addChild("File Transfer Set-Up");
+            root.addChild("File Transfer: Customize");
             return root;
         }
 
@@ -92,6 +92,7 @@ public class FileTransferController extends SpringActionController
             form.setLookupContainer(map.get(FileTransferManager.REFERENCE_FOLDER));
             form.setQueryName(map.get(FileTransferManager.REFERENCE_LIST));
             form.setColumnName(map.get(FileTransferManager.REFERENCE_COLUMN));
+            form.setSourceEndpointDir(map.get(FileTransferManager.SOURCE_ENDPOINT_DIRECTORY));
             return new JspView<>("/org/labkey/filetransfer/view/fileTransferConfig.jsp", form, errors);
         }
 

@@ -46,16 +46,33 @@
 
     Ext4.onReady(function()
     {
+        var getFieldHoverText = function(title, details) {
+            return '<a href="#" onclick="return showHelpDiv(this, \'' + title + '\', \'' + details + '\');" '
+                    + 'onmouseover="return showHelpDivDelay(this, \'' + title + '\', \'' + details + '\');" '
+                    + 'onmouseout="return hideHelpDivDelay();"><span class="labkey-help-pop-up">?</span></a>';
+        };
+
+        var containingFilesHeader = Ext4.create('Ext.form.Label', {
+            text: 'Files Directory Path',
+            style: 'font-weight: bold;'
+        });
+
         var endpointField = Ext4.create('Ext.form.field.Text', {
             name: "endpointPath",
             labelWidth: 150,
             width: 510,
+            padding: '10px 0 25px 0',
             hidden: false,
             disabled: false,
             fieldLabel: "Local Folder Path",
             initialValue : <%=q(bean.getEndpointPath())%>,
             value: <%=q(bean.getEndpointPath())%>,
             allowBlank: false
+        });
+
+        var referenceListHeader = Ext4.create('Ext.form.Label', {
+            text: 'Reference List',
+            style: 'font-weight: bold;'
         });
 
         var sqvModel = Ext4.create('LABKEY.sqv.Model', {});
@@ -68,9 +85,10 @@
         var containerComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeContainerComboConfig({
             name: 'lookupContainer',
             labelWidth: 150,
-            fieldLabel: 'Reference List Folder',
+            fieldLabel: 'Folder',
             editable: false,
             width: 510,
+            padding: '10px 0 0 0',
             allowBlank: false,
             initialValue : <%=q(bean.getLookupContainer())%>,
             value : <%=q(bean.getLookupContainer())%>,
@@ -89,7 +107,8 @@
             fieldLabel: 'Schema',
             value: 'lists',
             disabled: true,
-            width: 300
+            width: 300,
+            padding: '10px 0 0 0'
         });
 
         var queryComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeQueryComboConfig({
@@ -101,7 +120,8 @@
             allowBlank: false,
             initialValue : <%=q(bean.getQueryName())%>,
             value : <%=q(bean.getQueryName())%>,
-            width: 300
+            width: 300,
+            padding: '10px 0 0 0'
         }));
 
         var columnComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeColumnComboConfig({
@@ -113,8 +133,25 @@
             initialValue : <%=q(bean.getColumnName())%>,
             value : <%=q(bean.getColumnName())%>,
             margin: '0, 0, 20, 0',
-            width: 300
+            width: 300,
+            padding: '10px 0 25px 0'
         }));
+
+        var transferSourceHeader = Ext4.create('Ext.form.Label', {
+            text: 'Globus Genomics File Transfer Source',
+            style: 'font-weight: bold;'
+        });
+
+        var sourceEndpointDirField = Ext4.create('Ext.form.field.Text', {
+            name: "sourceEndpointDir",
+            labelWidth: 150,
+            width: 510,
+            padding: '10px 0 25px 0',
+            fieldLabel: "Endpoint Directory" + getFieldHoverText('Endpoint Directory', 'Specify the directory on the '
+                    + 'Globus Genomics endpoint that contains the files for this webpart.'),
+            initialValue : <%=q(bean.getSourceEndpointDir())%>,
+            value: <%=q(bean.getSourceEndpointDir())%>
+        });
 
         var cancelButton = Ext4.create('Ext.button.Button', {
             text: 'Cancel',
@@ -152,12 +189,16 @@
             cls: 'configFormPanel',
             width: 520,
             items : [
+                containingFilesHeader,
                 endpointField,
+                referenceListHeader,
                 containerIdTextField,
                 containerComboField,
                 schemaComboField,
                 queryComboField,
                 columnComboField,
+                transferSourceHeader,
+                sourceEndpointDirField,
                 { xtype: 'hidden', name: 'X-LABKEY-CSRF', value: LABKEY.CSRF }
             ],
             buttons: [
