@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
+import org.labkey.api.security.permissions.AdminOperationsPermission;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.webdav.FileSystemResource;
 import org.labkey.api.webdav.WebdavResolverImpl;
@@ -87,7 +88,7 @@ public class FileTransferWebdavProvider implements WebdavService.Provider
         @Override
         protected boolean hasAccess(User user)
         {
-            return user.isSiteAdmin() || this._c.getPolicy().getPermissions(user).size() > 0;
+            return user.hasRootPermission(AdminOperationsPermission.class) || this._c.getPolicy().getPermissions(user).size() > 0;
         }
 
         @Override

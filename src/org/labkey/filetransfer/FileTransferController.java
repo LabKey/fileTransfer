@@ -24,7 +24,7 @@ import org.labkey.api.data.PropertyManager;
 import org.labkey.api.files.FileContentService;
 import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.security.RequiresPermission;
-import org.labkey.api.security.RequiresSiteAdmin;
+import org.labkey.api.security.permissions.AdminOperationsPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.util.PageFlowUtil;
@@ -63,7 +63,7 @@ public class FileTransferController extends SpringActionController
         }
     }
 
-    @RequiresSiteAdmin
+    @RequiresPermission(AdminOperationsPermission.class)
     public class ConfigurationAction extends FormViewAction<FileTransferConfigForm>
     {
         @Override
