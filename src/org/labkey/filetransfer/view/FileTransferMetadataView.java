@@ -7,6 +7,7 @@ import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryView;
 import org.labkey.api.query.UserSchema;
+import org.labkey.api.security.permissions.AdminOperationsPermission;
 import org.labkey.api.util.StringExpression;
 import org.labkey.api.util.StringExpressionFactory;
 import org.labkey.api.view.ActionURL;
@@ -29,7 +30,7 @@ public class FileTransferMetadataView extends JspView
         super("/org/labkey/filetransfer/view/fileList.jsp");
         setTitle("File Transfer");
 
-        if (context.getUser().isSiteAdmin())
+        if (context.getContainer().hasPermission(context.getUser(), AdminOperationsPermission.class))
         {
             NavTree setUp = new NavTree("Customize", new ActionURL(FileTransferController.ConfigurationAction.class, context.getContainer()).toString(), null, "fa fa-pencil");
             setCustomize(setUp);
