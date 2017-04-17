@@ -17,6 +17,7 @@
 package org.labkey.filetransfer;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
@@ -24,10 +25,13 @@ import org.labkey.api.data.PropertyManager;
 import org.labkey.api.files.FileContentService;
 import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.security.RequiresPermission;
+import org.labkey.api.security.User;
+import org.labkey.api.security.permissions.AbstractActionPermissionTest;
 import org.labkey.api.security.permissions.AdminOperationsPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.util.PageFlowUtil;
+import org.labkey.api.util.TestContext;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.JspView;
@@ -119,4 +123,25 @@ public class FileTransferController extends SpringActionController
         }
     }
 
+    public static class TestCase extends AbstractActionPermissionTest
+    {
+        @Test
+        public void testActionPermissions()
+        {
+            User user = TestContext.get().getUser();
+            assertTrue(user.isInSiteAdminGroup());
+
+            FileTransferController controller = new FileTransferController();
+
+            // @RequiresPermission(ReadPermission.class)
+            assertForReadPermission(user,
+                controller.new BeginAction()
+            );
+
+            // @RequiresPermission(AdminOperationsPermission.class)
+            assertForAdminOperationsPermission(user,
+                controller.new ConfigurationAction()
+            );
+        }
+    }
 }

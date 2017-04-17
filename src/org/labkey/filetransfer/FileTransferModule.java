@@ -17,8 +17,6 @@
 package org.labkey.filetransfer;
 
 import org.jetbrains.annotations.NotNull;
-import org.labkey.api.data.Container;
-import org.labkey.api.data.ContainerManager;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleProperty;
@@ -103,4 +101,10 @@ public class FileTransferModule extends DefaultModule
         return Collections.singleton(SCHEMA_NAME);
     }
 
+    @Override
+    @NotNull
+    public Set<Class> getIntegrationTests()
+    {
+        return Collections.singleton(FileTransferController.TestCase.class);
+    }
 }
