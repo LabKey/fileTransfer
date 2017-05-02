@@ -37,6 +37,8 @@ public class FileTransferModule extends DefaultModule
     public static final String SCHEMA_NAME = "fileTransfer";
     public static final String FILE_TRANSFER_SERVICE_BASE_URL = "FileTransferServiceBaseUrl";
     public static final String FILE_TRANSFER_SOURCE_ENDPOINT_ID = "FileTransferSourceEndpointId";
+    public static final String FILE_TRANSFER_CLIENT_ID = "FileTransferClientId";
+    public static final String FILE_TRANSFER_CLIENT_SECRET = "FileTransferClientSecret";
 
     @Override
     public String getName()
@@ -71,7 +73,7 @@ public class FileTransferModule extends DefaultModule
     {
         ModuleProperty serviceBaseUrlProp = new ModuleProperty(this, FILE_TRANSFER_SERVICE_BASE_URL);
         serviceBaseUrlProp.setLabel("Service Base URL");
-        serviceBaseUrlProp.setDescription("Field for storing the base URL for the file transfer service. Example: https://www.globus.org/app/transfer.");
+        serviceBaseUrlProp.setDescription("The base URL for the file transfer service. Example: https://www.globus.org/app/transfer.");
         serviceBaseUrlProp.setCanSetPerContainer(true);
         serviceBaseUrlProp.setShowDescriptionInline(true);
         serviceBaseUrlProp.setInputFieldWidth(600);
@@ -79,10 +81,25 @@ public class FileTransferModule extends DefaultModule
 
         ModuleProperty sourceEndpointIdProp = new ModuleProperty(this, FILE_TRANSFER_SOURCE_ENDPOINT_ID);
         sourceEndpointIdProp.setLabel("Source Endpoint ID");
-        sourceEndpointIdProp.setDescription("Field for storing the unique identifier of the source endpoint.");
+        sourceEndpointIdProp.setDescription("The unique identifier of the source endpoint.");
         sourceEndpointIdProp.setCanSetPerContainer(true);
         sourceEndpointIdProp.setShowDescriptionInline(true);
         this.addModuleProperty(sourceEndpointIdProp);
+
+        ModuleProperty clientIdProp = new ModuleProperty(this, FILE_TRANSFER_CLIENT_ID);
+        clientIdProp.setLabel("Client Id");
+        clientIdProp.setDescription("The id assigned by the file transfer provider to identify this application as its client.");
+        clientIdProp.setCanSetPerContainer(true);
+        clientIdProp.setShowDescriptionInline(true);
+        this.addModuleProperty(clientIdProp);
+
+        ModuleProperty clientSecretProp = new ModuleProperty(this, FILE_TRANSFER_CLIENT_SECRET);
+        clientSecretProp.setLabel("Client Secret");
+        clientSecretProp.setDescription("The secret associated with the Client Id used for authenticating requests to the file transfer provider.");
+        clientSecretProp.setCanSetPerContainer(true);
+        clientSecretProp.setShowDescriptionInline(true);
+        this.addModuleProperty(clientSecretProp);
+
     }
 
     @Override
