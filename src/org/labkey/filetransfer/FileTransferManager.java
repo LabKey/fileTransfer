@@ -26,9 +26,9 @@ import org.labkey.api.exp.list.ListService;
 import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.util.PageFlowUtil;
+import org.labkey.api.util.Path;
 import org.labkey.api.webdav.WebdavResolver;
 import org.labkey.api.webdav.WebdavResolverImpl;
-import org.labkey.api.util.Path;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -168,7 +168,27 @@ public class FileTransferManager
         return module.getModuleProperties().get(FileTransferModule.FILE_TRANSFER_SOURCE_ENDPOINT_ID).getEffectiveValue(container);
     }
 
-    public String getGlobusGenomicsTransferUrl(Container container)
+    public String getClientId(Container container)
+    {
+        Module module = ModuleLoader.getInstance().getModule(FileTransferModule.NAME);
+        return module.getModuleProperties().get(FileTransferModule.FILE_TRANSFER_CLIENT_ID).getEffectiveValue(container);
+    }
+
+    public String getClientSecret(Container container)
+    {
+        Module module = ModuleLoader.getInstance().getModule(FileTransferModule.NAME);
+        return module.getModuleProperties().get(FileTransferModule.FILE_TRANSFER_CLIENT_SECRET).getEffectiveValue(container);
+    }
+
+    public boolean isTransferConfigured(Container container)
+    {
+        String clientId = getClientId(container);
+        String clientSecret = getClientSecret(container);
+        String baseUrl = getServiceBaseUrl(container);
+        return clientId != null && clientSecret != null && baseUrl != null;
+    }
+
+    public String getGlobusTransferUiUrl(Container container)
     {
         String baseUrl = getServiceBaseUrl(container);
         String endpointId = getSourceEndpointId(container);

@@ -3,6 +3,8 @@ package org.labkey.filetransfer.view;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.data.ButtonBar;
+import org.labkey.api.data.Container;
+import org.labkey.api.exp.list.ListDefinition;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryView;
@@ -18,6 +20,8 @@ import org.labkey.api.view.ViewContext;
 import org.labkey.filetransfer.FileTransferController;
 import org.labkey.filetransfer.FileTransferManager;
 import org.labkey.filetransfer.query.FileTransferQuerySchema;
+import org.labkey.filetransfer.security.GlobusAuthenticator;
+import org.labkey.filetransfer.security.OAuth2Authenticator;
 import org.springframework.validation.Errors;
 
 /**
@@ -35,13 +39,19 @@ public class FileTransferMetadataView extends JspView
             NavTree setUp = new NavTree("Customize", new ActionURL(FileTransferController.ConfigurationAction.class, context.getContainer()).toString(), null, "fa fa-pencil");
             setCustomize(setUp);
         }
+
         FileTransferManager manager = FileTransferManager.get();
         if (manager.isMetadataListConfigured(context.getContainer()))
         {
             UserSchema schema = QueryService.get().getUserSchema(context.getUser(), context.getContainer(), FileTransferQuerySchema.NAME);
-            QuerySettings settings = schema.getSettings(getViewContext(), QueryView.DATAREGIONNAME_DEFAULT, FileTransferQuerySchema.FILE_METADATA_TABLE_NAME);
-            FileTransferMetadataQueryView view = new FileTransferMetadataQueryView(schema, settings, null);
-            setView("metadataList", view);
+
+            ListDefinition listDef = manager.getMetadataList(context.getContainer());
+            if (listDef != null)
+            {
+                QuerySettings settings = schema.getSettings(getViewContext(), "metadataList_" + listDef.getListId(), FileTransferQuerySchema.FILE_METADATA_TABLE_NAME);
+                FileTransferMetadataQueryView view = new FileTransferMetadataQueryView(schema, settings, null);
+                setView("metadataList", view);
+            }
         }
     }
 
@@ -57,15 +67,34 @@ public class FileTransferMetadataView extends JspView
         {
             super.populateButtonBar(view, bar);
 
-            String transferLinkUrl = FileTransferManager.get().getGlobusGenomicsTransferUrl(view.getViewContext().getContainer());
+            Container container = view.getViewContext().getContainer();
+            FileTransferManager manager = FileTransferManager.get();
+            if (manager.isTransferConfigured(container))
+            {
+                OAuth2Authenticator authenticator = new GlobusAuthenticator(getUser(), getContainer());
+                String transferUrl;
+                if (authenticator.isAuthorized())
+                    transferUrl = new ActionURL(FileTransferController.TransferAction.class, view.getViewContext().getContainer()).toString();
+                else
+                    transferUrl = authenticator.getAuthorizationUrl();
+                if (transferUrl != null)
+                {
+                    StringExpression url = StringExpressionFactory.createURL(transferUrl);
+                    ActionButton transferBtn = new ActionButton("Transfer", url);
+                    transferBtn.setTarget("_blank");
+                    // TODO add in the script to save the transfer data from the query view.
+                    bar.add(transferBtn);
+                }
+            }
+            String transferLinkUrl = manager.getGlobusTransferUiUrl(view.getViewContext().getContainer());
             if (transferLinkUrl != null)
             {
                 StringExpression url = StringExpressionFactory.createURL(transferLinkUrl);
                 if (url != null)
                 {
-                    ActionButton transferBtn = new ActionButton("Open Transfer Link", url);
-                    transferBtn.setTarget("_blank");
-                    bar.add(transferBtn);
+                    ActionButton transferLinkBtn = new ActionButton("Open Transfer Link", url);
+                    transferLinkBtn.setTarget("_blank");
+                    bar.add(transferLinkBtn);
                 }
             }
         }

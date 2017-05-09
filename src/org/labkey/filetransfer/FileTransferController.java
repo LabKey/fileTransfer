@@ -16,9 +16,12 @@
 
 package org.labkey.filetransfer;
 
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.StoredCredential;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.labkey.api.action.FormViewAction;
+import org.labkey.api.action.RedirectAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.data.PropertyManager;
@@ -36,6 +39,9 @@ import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
+import org.labkey.filetransfer.security.GlobusAuthenticator;
+import org.labkey.filetransfer.security.OAuth2Authenticator;
+import org.labkey.filetransfer.security.SecurePropertiesDataStore;
 import org.labkey.filetransfer.view.FileTransferMetadataView;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
@@ -120,6 +126,93 @@ public class FileTransferController extends SpringActionController
                 return new ActionURL(form.getReturnUrl());
             else
                 return PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
+        }
+    }
+
+    @RequiresPermission(ReadPermission.class)
+    public static class TransferAction extends SimpleViewAction
+    {
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return null;
+        }
+
+        @Override
+        public ModelAndView getView(Object o, BindException errors) throws Exception
+        {
+            return null;
+        }
+    }
+
+    @RequiresPermission(ReadPermission.class)
+    public static class AuthAction extends RedirectAction<AuthForm>
+    {
+        @Override
+        public URLHelper getSuccessURL(AuthForm authForm)
+        {
+            return new ActionURL(FileTransferController.TransferAction.class, getContainer());
+        }
+
+        @Override
+        public boolean doAction(AuthForm form, BindException errors) throws Exception
+        {
+            if (form.getError() != null)
+            {
+                logger.error("Error in authorizing: " + form.getError());
+                return false;
+            }
+            else if (form.getCode() != null)
+            {
+                SecurePropertiesDataStore store = new SecurePropertiesDataStore(getUser(), getContainer());
+
+                StoredCredential credential = store.get(null);
+                if (credential.getAccessToken() == null || credential.getExpirationTimeMilliseconds() == null || credential.getExpirationTimeMilliseconds() <= 0)
+                {
+                    OAuth2Authenticator authenticator = new GlobusAuthenticator(getUser(), getContainer());
+
+                    Credential c = authenticator.getTokens(form.getCode());
+                    if (c.getAccessToken() != null)
+                    {
+                        store.set(store.getId(), new StoredCredential(c));
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void validateCommand(AuthForm target, Errors errors)
+        {
+
+        }
+    }
+
+    public static class AuthForm
+    {
+        private String _code;
+        private String _error;
+
+        public String getCode()
+        {
+            return _code;
+        }
+
+        public void setCode(String code)
+        {
+            _code = code;
+        }
+
+        public String getError()
+        {
+            return _error;
+        }
+
+        public void setError(String error)
+        {
+            _error = error;
         }
     }
 
