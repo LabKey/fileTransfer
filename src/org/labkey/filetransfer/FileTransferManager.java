@@ -33,15 +33,16 @@ import org.labkey.api.webdav.WebdavResolverImpl;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class FileTransferManager
 {
     private static final FileTransferManager _instance = new FileTransferManager();
     public static final String FILE_TRANSFER_CONFIG_PROPERTIES = "fileTransferConfigProperties";
-    public static final String ENDPOINT_DIRECTORY = "endpointDirectory";
+    public static final String LOCAL_FILES_DIRECTORY = "localFilesDirectory";
     public static final String REFERENCE_FOLDER = "listFolder";
     public static final String REFERENCE_LIST = "listTable";
-    public static final String REFERENCE_COLUMN = "fileColumn";
+    public static final String REFERENCE_COLUMN = "fileNameColumn";
     public static final String SOURCE_ENDPOINT_DIRECTORY = "sourceEndpointDir";
 
     private FileTransferManager()
@@ -54,39 +55,15 @@ public class FileTransferManager
         return _instance;
     }
 
-    public void saveFileTransferConfig(FileTransferConfigForm form, Container container)
+    public Boolean isMetadataListConfigured(Map<String, String> properties)
     {
-        String oldPath = getEndpointPath(container);
-
-        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
-        map.put(ENDPOINT_DIRECTORY, String.valueOf(form.getEndpointPath()));
-        map.put(REFERENCE_FOLDER, String.valueOf(form.getLookupContainer()));
-        map.put(REFERENCE_LIST, String.valueOf(form.getQueryName()));
-        map.put(REFERENCE_COLUMN, String.valueOf(form.getColumnName()));
-        map.put(SOURCE_ENDPOINT_DIRECTORY, form.getSourceEndpointDir() != null ? String.valueOf(form.getSourceEndpointDir()) : null);
-        map.save();
-
-        ContainerManager.ContainerPropertyChangeEvent evt = new ContainerManager.ContainerPropertyChangeEvent(
-                container, ContainerManager.Property.EndpointDirectory, oldPath, form.getEndpointPath());
-        ContainerManager.firePropertyChangeEvent(evt);
-    }
-
-    public PropertyManager.PropertyMap getFileTransferConfig(Container container)
-    {
-        return PropertyManager.getProperties(container, FileTransferManager.FILE_TRANSFER_CONFIG_PROPERTIES);
-    }
-
-    public Boolean isMetadataListConfigured(Container container)
-    {
-        return !getFileTransferConfig(container).isEmpty();
+        return properties != null && !properties.isEmpty();
     }
 
     @Nullable
-    public ListDefinition getMetadataList(Container container)
+    public ListDefinition getMetadataList(Map<String, String> map)
     {
-        PropertyManager.PropertyMap map = FileTransferManager.get().getFileTransferConfig(container);
-
-        if (!map.isEmpty())
+        if (map != null && !map.isEmpty())
         {
             String listContainerId = map.get(REFERENCE_FOLDER);
             Container listContainer = ContainerManager.getForId(listContainerId);
@@ -99,20 +76,10 @@ public class FileTransferManager
         return null;
     }
 
-    public String getFileNameColumn(Container container)
-    {
-        PropertyManager.PropertyMap map = FileTransferManager.get().getFileTransferConfig(container);
-        if (!map.isEmpty())
-        {
-            return map.get(REFERENCE_COLUMN);
-        }
-        return null;
-    }
-
     public String getEndpointPath(Container container)
     {
         PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
-        return map.get(ENDPOINT_DIRECTORY);
+        return map.get(LOCAL_FILES_DIRECTORY);
     }
 
     public String getSourceEndpointDir(Container container)

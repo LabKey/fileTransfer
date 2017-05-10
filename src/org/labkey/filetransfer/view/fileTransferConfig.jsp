@@ -16,31 +16,28 @@
      * limitations under the License.
      */
 %>
-<%@ page import="org.labkey.api.data.Container" %>
-<%@ page import="org.labkey.api.security.User" %>
-<%@ page import="org.labkey.api.view.template.ClientDependencies" %>
-<%@ page import="org.labkey.filetransfer.FileTransferConfigForm" %>
+
 <%@ page import="org.labkey.api.view.JspView" %>
-<%@ page import="org.labkey.api.view.HttpView" %>
+<%@ page import="org.labkey.api.view.Portal" %>
+<%@ page import="org.labkey.api.view.template.ClientDependencies" %>
+<%@ page import="java.util.Map" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
     @Override
     public void addClientDependencies(ClientDependencies dependencies)
     {
-        dependencies.add("Ext4");
         dependencies.add("sqv");
         dependencies.add("fileTransfer/fileTransferConfig.css");
     }
 %>
 <%
-    Container c = getContainer();
-    User user = getUser();
-    JspView<FileTransferConfigForm> me = (JspView<FileTransferConfigForm>) HttpView.currentView();
-    FileTransferConfigForm bean = me.getModelBean();
+    JspView<Portal.WebPart>  me = (JspView<Portal.WebPart>) JspView.currentView();
+    Portal.WebPart webPart = me.getModelBean();
+    Map<String, String> properties = webPart.getPropertyMap();
+    String title = properties.get("webpart.title") != null ? properties.get("webpart.title"): "File Transfer";
 %>
 <labkey:errors/>
 <div id="SQVPicker"></div>
-
 
 <script type="text/javascript">
 
@@ -52,26 +49,40 @@
                     + 'onmouseout="return hideHelpDivDelay();"><span class="labkey-help-pop-up">?</span></a>';
         };
 
+        var webPartTitle = Ext4.create("Ext.form.field.Text", {
+            name: "webpart.title",
+            labelWidth: 150,
+            width: 510,
+            padding: '10px 0 25px 0',
+            hidden: false,
+            disabled: false,
+            fieldLabel: "Web Part Title",
+            initialValue : <%=text(qh(title))%>,
+            value: <%=text(qh(title))%>,
+            allowBlank: false
+        });
+
         var containingFilesHeader = Ext4.create('Ext.form.Label', {
             text: 'Files Directory Path',
             style: 'font-weight: bold;'
         });
 
         var endpointField = Ext4.create('Ext.form.field.Text', {
-            name: "endpointPath",
+            name: "localFilesDirectory",
             labelWidth: 150,
             width: 510,
             padding: '10px 0 25px 0',
             hidden: false,
             disabled: false,
-            fieldLabel: "Local Folder Path",
-            initialValue : <%=q(bean.getEndpointPath())%>,
-            value: <%=q(bean.getEndpointPath())%>,
+            fieldLabel: "Local Directory" + getFieldHoverText('Local Directory', 'Specify the directory on the '
+                            + 'local file system where the files to be transferred in this webpart are available.'),
+            initialValue : <%=q(properties.get("localFilesDirectory"))%>,
+            value: <%=q(properties.get("localFilesDirectory"))%>,
             allowBlank: false
         });
 
         var referenceListHeader = Ext4.create('Ext.form.Label', {
-            text: 'Reference List',
+            text: "Reference List" ,
             style: 'font-weight: bold;'
         });
 
@@ -83,15 +94,16 @@
         });
 
         var containerComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeContainerComboConfig({
-            name: 'lookupContainer',
+            name: 'listFolder',
             labelWidth: 150,
-            fieldLabel: 'Folder',
+            fieldLabel: 'Folder' + getFieldHoverText('Reference List Folder', 'Specify the location of the '
+                    + 'list that contains the metadata for the files referenced in this webpart.'),
             editable: false,
             width: 510,
             padding: '10px 0 0 0',
             allowBlank: false,
-            initialValue : <%=q(bean.getLookupContainer())%>,
-            value : <%=q(bean.getLookupContainer())%>,
+            initialValue : <%=q(properties.get("listFolder"))%>,
+            value : <%=q(properties.get("listFolder"))%>,
             listeners: {
                 select: function(combo) {
                     containerIdTextField.setValue(combo.getValue());
@@ -112,26 +124,28 @@
         });
 
         var queryComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeQueryComboConfig({
-            name: 'queryName',
+            name: 'listTable',
             forceSelection: true,
             defaultSchema: 'lists',
-            fieldLabel: 'List',
+            fieldLabel: 'List'+ getFieldHoverText('Reference List', 'Specify the name of the '
+                    + 'list that contains the metadata for the files referenced in this webpart.'),
             labelWidth: 150,
             allowBlank: false,
-            initialValue : <%=q(bean.getQueryName())%>,
-            value : <%=q(bean.getQueryName())%>,
+            initialValue : <%=q(properties.get("listTable"))%>,
+            value : <%=q(properties.get("listTable"))%>,
             width: 300,
             padding: '10px 0 0 0'
         }));
 
         var columnComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeColumnComboConfig({
-            name: 'columnName',
-            fieldLabel: 'File Name Field',
+            name: 'fileNameColumn',
+            fieldLabel: 'File Name Field' + getFieldHoverText('Reference List Filed', 'Specify the name of the field in the reference list '
+                    + 'that contains the names of the files that could be transferred.'),
             forceSelection: true,
             labelWidth: 150,
             allowBlank: false,
-            initialValue : <%=q(bean.getColumnName())%>,
-            value : <%=q(bean.getColumnName())%>,
+            initialValue : <%=q(properties.get("fileNameColumn"))%>,
+            value : <%=q(properties.get("fileNameColumn"))%>,
             margin: '0, 0, 20, 0',
             width: 300,
             padding: '10px 0 25px 0'
@@ -149,8 +163,8 @@
             padding: '10px 0 25px 0',
             fieldLabel: "Endpoint Directory" + getFieldHoverText('Endpoint Directory', 'Specify the directory on the '
                     + 'Globus Genomics endpoint that contains the files for this webpart.'),
-            initialValue : <%=q(bean.getSourceEndpointDir())%>,
-            value: <%=q(bean.getSourceEndpointDir())%>
+            initialValue : <%=q(properties.get("sourceEndpointDir"))%>,
+            value: <%=q(properties.get("sourceEndpointDir"))%>
         });
 
         var cancelButton = Ext4.create('Ext.button.Button', {
@@ -175,7 +189,9 @@
                 if (form.isValid()) {
                     form.standardSubmit = true;
                     form.submit({
-                        url: LABKEY.ActionURL.buildURL('filetransfer', 'configuration.view'),
+                        // TODO put this back in so we can validate the values
+//                        url: LABKEY.ActionURL.buildURL('filetransfer', 'configuration.view'),
+                        url: <%=q(webPart.getCustomizePostURL(getViewContext()).getLocalURIString())%>,
                         method: 'POST',
                         scope: this
                     });
@@ -189,6 +205,7 @@
             cls: 'configFormPanel',
             width: 520,
             items : [
+                webPartTitle,
                 containingFilesHeader,
                 endpointField,
                 referenceListHeader,

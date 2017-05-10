@@ -18,36 +18,24 @@ package org.labkey.filetransfer;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.StoredCredential;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
-import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.RedirectAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
-import org.labkey.api.data.PropertyManager;
-import org.labkey.api.files.FileContentService;
-import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AbstractActionPermissionTest;
-import org.labkey.api.security.permissions.AdminOperationsPermission;
 import org.labkey.api.security.permissions.ReadPermission;
-import org.labkey.api.services.ServiceRegistry;
-import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.TestContext;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
-import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.filetransfer.security.GlobusAuthenticator;
 import org.labkey.filetransfer.security.OAuth2Authenticator;
 import org.labkey.filetransfer.security.SecurePropertiesDataStore;
-import org.labkey.filetransfer.view.FileTransferMetadataView;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.util.Map;
 
 public class FileTransferController extends SpringActionController
 {
@@ -59,78 +47,65 @@ public class FileTransferController extends SpringActionController
         setActionResolver(_actionResolver);
     }
 
-    @RequiresPermission(ReadPermission.class)
-    public class BeginAction extends SimpleViewAction
-    {
-        public ModelAndView getView(Object o, BindException errors) throws Exception
-        {
-            return new FileTransferMetadataView(getViewContext());
-        }
-
-        public NavTree appendNavTrail(NavTree root)
-        {
-            return root;
-        }
-    }
-
-    @RequiresPermission(AdminOperationsPermission.class)
-    public class ConfigurationAction extends FormViewAction<FileTransferConfigForm>
-    {
-        @Override
-        public NavTree appendNavTrail(NavTree root)
-        {
-            root.addChild("File Transfer: Customize");
-            return root;
-        }
-
-        @Override
-        public void validateCommand(FileTransferConfigForm form, Errors errors)
-        {
-            String endpointPath = form.getEndpointPath();
-            FileContentService service = ServiceRegistry.get().getService(FileContentService.class);
-            if (service != null && !service.isValidProjectRoot(endpointPath))
-            {
-                errors.reject(ERROR_MSG, "File root '" + endpointPath + "' does not appear to be a valid directory accessible to the server at " + getViewContext().getRequest().getServerName() + ".");
-            }
-        }
-
-        @Override
-        public ModelAndView getView(FileTransferConfigForm form, boolean reshow, BindException errors) throws Exception
-        {
-            Map<String, String> map = PropertyManager.getProperties(getContainer(), FileTransferManager.FILE_TRANSFER_CONFIG_PROPERTIES);
-            form.setEndpointPath(map.get(FileTransferManager.ENDPOINT_DIRECTORY));
-            form.setLookupContainer(map.get(FileTransferManager.REFERENCE_FOLDER));
-            form.setQueryName(map.get(FileTransferManager.REFERENCE_LIST));
-            form.setColumnName(map.get(FileTransferManager.REFERENCE_COLUMN));
-            form.setSourceEndpointDir(map.get(FileTransferManager.SOURCE_ENDPOINT_DIRECTORY));
-            return new JspView<>("/org/labkey/filetransfer/view/fileTransferConfig.jsp", form, errors);
-        }
-
-        @Override
-        public boolean handlePost(FileTransferConfigForm form, BindException errors) throws Exception
-        {
-            if (StringUtils.isEmpty(form.getEndpointPath()))
-                return false;
-
-            if (errors.hasErrors())
-                return false;
-
-            FileTransferManager.get().saveFileTransferConfig(form, getContainer());
-            return true;
-        }
-
-        @Override
-        public URLHelper getSuccessURL(FileTransferConfigForm form)
-        {
-            if (form.getReturnUrl() != null)
-                return new ActionURL(form.getReturnUrl());
-            else
-                return PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
-        }
-    }
+    // TODO put this back, but use a different base class.  We still want to do the validation.
+//    @RequiresPermission(AdminPermission.class)
+//    public class ConfigurationAction extends FormViewAction<FileTransferConfigForm>
+//    {
+//        @Override
+//        public NavTree appendNavTrail(NavTree root)
+//        {
+//            root.addChild("File Transfer: Customize");
+//            return root;
+//        }
+//
+//        @Override
+//        public void validateCommand(FileTransferConfigForm form, Errors errors)
+//        {
+//            String endpointPath = form.getEndpointPath();
+//            FileContentService service = ServiceRegistry.get().getService(FileContentService.class);
+//            if (service != null && !service.isValidProjectRoot(endpointPath))
+//            {
+//                errors.reject(ERROR_MSG, "File root '" + endpointPath + "' does not appear to be a valid directory accessible to the server at " + getViewContext().getRequest().getServerName() + ".");
+//            }
+//        }
+//
+//        @Override
+//        public ModelAndView getView(FileTransferConfigForm form, boolean reshow, BindException errors) throws Exception
+//        {
+//            Map<String, String> map = PropertyManager.getProperties(getContainer(), FileTransferManager.FILE_TRANSFER_CONFIG_PROPERTIES);
+//            form.setEndpointPath(map.get(FileTransferManager.ENDPOINT_DIRECTORY));
+//            form.setLookupContainer(map.get(FileTransferManager.REFERENCE_FOLDER));
+//            form.setQueryName(map.get(FileTransferManager.REFERENCE_LIST));
+//            form.setColumnName(map.get(FileTransferManager.REFERENCE_COLUMN));
+//            form.setSourceEndpointDir(map.get(FileTransferManager.SOURCE_ENDPOINT_DIRECTORY));
+//            return new JspView<>("/org/labkey/filetransfer/view/fileTransferConfig.jsp", form, errors);
+//        }
+//
+//        @Override
+//        public boolean handlePost(FileTransferConfigForm form, BindException errors) throws Exception
+//        {
+//            if (StringUtils.isEmpty(form.getEndpointPath()))
+//                return false;
+//
+//            if (errors.hasErrors())
+//                return false;
+//
+//            FileTransferManager.get().saveFileTransferConfig(form, getContainer());
+//            return true;
+//        }
+//
+//        @Override
+//        public URLHelper getSuccessURL(FileTransferConfigForm form)
+//        {
+//            if (form.getReturnUrl() != null)
+//                return new ActionURL(form.getReturnUrl());
+//            else
+//                return PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
+//        }
+//    }
 
     @RequiresPermission(ReadPermission.class)
-    public static class TransferAction extends SimpleViewAction
+    public class TransferAction extends SimpleViewAction
     {
 
         @Override
@@ -147,7 +122,7 @@ public class FileTransferController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public static class AuthAction extends RedirectAction<AuthForm>
+    public class AuthAction extends RedirectAction<AuthForm>
     {
         @Override
         public URLHelper getSuccessURL(AuthForm authForm)
@@ -228,13 +203,14 @@ public class FileTransferController extends SpringActionController
 
             // @RequiresPermission(ReadPermission.class)
             assertForReadPermission(user,
-                controller.new BeginAction()
+                controller.new TransferAction(),
+                controller.new AuthAction()
             );
 
-            // @RequiresPermission(AdminOperationsPermission.class)
-            assertForAdminOperationsPermission(user,
-                controller.new ConfigurationAction()
-            );
+//            // @RequiresPermission(AdminOperationsPermission.class)
+//            assertForAdminOperationsPermission(user,
+//                controller.new ConfigurationAction()
+//            );
         }
     }
 }

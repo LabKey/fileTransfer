@@ -13,16 +13,19 @@ import org.labkey.filetransfer.FileTransferManager;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
+import java.util.Map;
+
+import static org.labkey.filetransfer.FileTransferManager.REFERENCE_COLUMN;
 
 /**
  * Created by susanh on 2/9/17.
  */
 public class FileTransferMetadataTable extends FilteredTable<UserSchema>
 {
-
-    public FileTransferMetadataTable(TableInfo table, List<String> activeFiles, @NotNull UserSchema userSchema)
+    public FileTransferMetadataTable(Map<String, String> properties, TableInfo table, @NotNull UserSchema userSchema)
     {
         super(table, userSchema, ContainerFilter.EVERYTHING);
+        List<String> activeFiles = FileTransferManager.get().getActiveFiles(getContainer());
         wrapAllColumns(true);
         setDetailsURL(null);
 
@@ -32,7 +35,7 @@ public class FileTransferMetadataTable extends FilteredTable<UserSchema>
         getColumn("Created").setHidden(true);
         getColumn("Container").setHidden(true);
 
-        ColumnInfo fromColumn = getRealTable().getColumn( FileTransferManager.get().getFileNameColumn(getContainer()));
+        ColumnInfo fromColumn = getRealTable().getColumn( properties.get(REFERENCE_COLUMN));
         if (fromColumn == null)
             return;
         ColumnInfo availabilityColumn = wrapColumn("Available", new ColumnInfo(fromColumn));

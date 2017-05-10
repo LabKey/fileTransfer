@@ -20,11 +20,10 @@ import org.jetbrains.annotations.NotNull;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleProperty;
-import org.labkey.api.view.SimpleWebPartFactory;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.api.webdav.WebdavService;
 import org.labkey.filetransfer.query.FileTransferQuerySchema;
-import org.labkey.filetransfer.view.FileTransferMetadataView;
+import org.labkey.filetransfer.view.FileTransferMetadataWebPartFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +56,7 @@ public class FileTransferModule extends DefaultModule
     protected Collection<WebPartFactory> createWebPartFactories()
     {
         ArrayList<WebPartFactory> list = new ArrayList<>();
-        SimpleWebPartFactory factory = new SimpleWebPartFactory("File Transfer Metadata", WebPartFactory.LOCATION_BODY, FileTransferMetadataView.class, null);
+        FileTransferMetadataWebPartFactory factory = new FileTransferMetadataWebPartFactory();
         list.add(factory);
         return list;
     }
