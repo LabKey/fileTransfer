@@ -1,0 +1,4 @@
+{table}
+Filename|Component|Version|Source|License|LabKey Dev|Purpose
+google-oauth-client-1.22.0.jar|Google OAuth Client Library|1.22.0|{link:Google|https://developers.google.com/api-client-library/java/google-oauth-java-client/download}|{link:Creative Commons 3.0|https://creativecommons.org/licenses/by/3.0/}|susanh|OAuth library
+{table}
