@@ -30,7 +30,7 @@ public class FileTransferMetadataWebPartFactory extends BaseWebPartFactory
     }
 
     @Override
-    public WebPartView getWebPartView(@NotNull ViewContext context, @NotNull Portal.@NotNull WebPart webPart) throws WebPartConfigurationException
+    public WebPartView getWebPartView(@NotNull ViewContext context, @NotNull Portal.WebPart webPart) throws WebPartConfigurationException
     {
         Map<String, String> propertyMap = webPart.getPropertyMap();
 
@@ -44,8 +44,8 @@ public class FileTransferMetadataWebPartFactory extends BaseWebPartFactory
             ListDefinition listDef = manager.getMetadataList(propertyMap);
             if (listDef != null)
             {
-                QuerySettings settings = schema.getSettings(context, "metadataList_" + listDef.getListId(), FileTransferQuerySchema.FILE_METADATA_TABLE_NAME);
-                FileTransferMetadataQueryView listView = new FileTransferMetadataQueryView(propertyMap, schema, settings, null);
+                QuerySettings settings = schema.getSettings(context, getDataRegionName(listDef), FileTransferQuerySchema.FILE_METADATA_TABLE_NAME + "_" + listDef.getListId());
+                FileTransferMetadataQueryView listView = new FileTransferMetadataQueryView(webPart, schema, settings, null);
                 view.setView("metadataList", listView);
             }
         }
@@ -55,5 +55,10 @@ public class FileTransferMetadataWebPartFactory extends BaseWebPartFactory
     public HttpView getEditView(Portal.WebPart webPart, ViewContext context)
     {
         return new FileTransferConfigView(webPart);
+    }
+
+    public static String getDataRegionName(ListDefinition listDef)
+    {
+        return "metadataList_" + listDef.getListId();
     }
 }

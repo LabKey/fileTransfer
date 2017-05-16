@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.data.ButtonBar;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.DataRegionSelection;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.list.ListDefinition;
 import org.labkey.api.query.QuerySettings;
@@ -11,12 +12,13 @@ import org.labkey.api.query.QueryView;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.util.StringExpression;
 import org.labkey.api.util.StringExpressionFactory;
+import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
+import org.labkey.api.view.Portal;
+import org.labkey.filetransfer.FileTransferController;
 import org.labkey.filetransfer.FileTransferManager;
 import org.labkey.filetransfer.query.FileTransferMetadataTable;
 import org.labkey.filetransfer.query.FileTransferQuerySchema;
-import org.labkey.filetransfer.security.GlobusAuthenticator;
-import org.labkey.filetransfer.security.OAuth2Authenticator;
 import org.springframework.validation.Errors;
 
 import java.util.Map;
@@ -26,23 +28,25 @@ import java.util.Map;
  */
 public class FileTransferMetadataQueryView extends QueryView
 {
+    Portal.WebPart webPart;
     Map<String, String> properties;
+    ListDefinition listDef;
 
-    public FileTransferMetadataQueryView(Map<String, String> propertyMap, UserSchema schema, QuerySettings settings, @Nullable Errors errors)
+    public FileTransferMetadataQueryView(Portal.WebPart webPart, UserSchema schema, QuerySettings settings, @Nullable Errors errors)
     {
         super(schema, settings, errors);
-        this.properties = propertyMap;
+        this.webPart = webPart;
+        this.properties = webPart.getPropertyMap();
+        if (this.properties != null)
+        {
+            listDef = FileTransferManager.get().getMetadataList(webPart.getPropertyMap());
+        }
     }
 
     @Override
     protected TableInfo createTable()
     {
-        if (this.properties != null)
-        {
-            ListDefinition listDef = FileTransferManager.get().getMetadataList(this.properties);
-            return listDef == null ? null : new FileTransferMetadataTable(properties, listDef.getTable(getUser()), new FileTransferQuerySchema(getUser(), getContainer()));
-        }
-        return null;
+        return listDef == null ? null : new FileTransferMetadataTable(properties, listDef.getTable(getUser()), new FileTransferQuerySchema(getUser(), getContainer()));
     }
 
     @Override
@@ -54,20 +58,16 @@ public class FileTransferMetadataQueryView extends QueryView
         FileTransferManager manager = FileTransferManager.get();
         if (manager.isTransferConfigured(container))
         {
-            OAuth2Authenticator authenticator = new GlobusAuthenticator(getUser(), getContainer());
-            String transferUrl;
-            // TODO direct to a controller action that will capture the query parameters
-//            if (authenticator.isAuthorized())
-//                transferUrl = new ActionURL(FileTransferController.TransferAction.class, view.getViewContext().getContainer()).toString();
-//            else
-                transferUrl = authenticator.getAuthorizationUrl();
+            String transferUrl = new ActionURL(FileTransferController.AuthAction.class, view.getViewContext().getContainer())
+                    .addParameter(DataRegionSelection.DATA_REGION_SELECTION_KEY, view.getDataRegion().getSelectionKey())
+                    .addParameter("webPartId", webPart.getRowId())
+                    .addReturnURL(view.getViewContext().getActionURL())
+                    .toString();
             if (transferUrl != null)
             {
                 StringExpression url = StringExpressionFactory.createURL(transferUrl);
                 ActionButton transferBtn = new ActionButton("Transfer", url);
-                transferBtn.setTarget("_blank");
-                // TODO add in the script to save the transfer data from the query view.
-
+                transferBtn.setRequiresSelection(true);
                 bar.add(transferBtn);
             }
         }

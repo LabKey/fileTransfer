@@ -19,7 +19,11 @@ package org.labkey.filetransfer;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import org.junit.Test;
+import org.labkey.api.action.ApiAction;
+import org.labkey.api.action.Marshal;
+import org.labkey.api.action.Marshaller;
 import org.labkey.api.action.RedirectAction;
+import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.security.RequiresPermission;
@@ -30,13 +34,24 @@ import org.labkey.api.util.TestContext;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.NavTree;
+import org.labkey.api.view.RedirectException;
+import org.labkey.filetransfer.model.TransferEndpoint;
+import org.labkey.filetransfer.provider.GlobusFileTransferProvider;
 import org.labkey.filetransfer.security.GlobusAuthenticator;
 import org.labkey.filetransfer.security.OAuth2Authenticator;
 import org.labkey.filetransfer.security.SecurePropertiesDataStore;
+import org.labkey.filetransfer.view.TransferView;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpSession;
+
+import java.net.URISyntaxException;
+
+import static org.labkey.api.data.DataRegionSelection.DATA_REGION_SELECTION_KEY;
+
+@Marshal(Marshaller.Jackson)
 public class FileTransferController extends SpringActionController
 {
     private static final DefaultActionResolver _actionResolver = new DefaultActionResolver(FileTransferController.class);
@@ -61,7 +76,7 @@ public class FileTransferController extends SpringActionController
 //        @Override
 //        public void validateCommand(FileTransferConfigForm form, Errors errors)
 //        {
-//            String endpointPath = form.getEndpointPath();
+//            String endpointPath = form.getEndpointLocalPath();
 //            FileContentService service = ServiceRegistry.get().getService(FileContentService.class);
 //            if (service != null && !service.isValidProjectRoot(endpointPath))
 //            {
@@ -84,7 +99,7 @@ public class FileTransferController extends SpringActionController
 //        @Override
 //        public boolean handlePost(FileTransferConfigForm form, BindException errors) throws Exception
 //        {
-//            if (StringUtils.isEmpty(form.getEndpointPath()))
+//            if (StringUtils.isEmpty(form.getEndpointLocalPath()))
 //                return false;
 //
 //            if (errors.hasErrors())
@@ -105,9 +120,51 @@ public class FileTransferController extends SpringActionController
 //    }
 
     @RequiresPermission(ReadPermission.class)
-    public class TransferAction extends SimpleViewAction
+    public class TransferAction extends ApiAction<TransferRequestForm>
     {
+        @Override
+        public Object execute(TransferRequestForm form, BindException errors) throws Exception
+        {
+            GlobusFileTransferProvider provider = new GlobusFileTransferProvider(getContainer(), getUser());
+            TransferEndpoint source = new TransferEndpoint(FileTransferManager.get().getSourceEndpointId(getContainer()),
+                    FileTransferManager.get().getSourceEndpointDir(getContainer()));
+            TransferEndpoint destination = new TransferEndpoint(form.getDestinationEndpoint(), form.getDestinationPath());
+            provider.transfer(source, destination, null);
+            // get the source endpoint and path
+            // make the request to get the submission token
+            return success();
+        }
+    }
 
+    public static class TransferRequestForm
+    {
+        private String destinationEndpoint;
+        private String destinationPath;
+
+        public String getDestinationEndpoint()
+        {
+            return destinationEndpoint;
+        }
+
+        public void setDestinationEndpoint(String destinationEndpoint)
+        {
+            this.destinationEndpoint = destinationEndpoint;
+        }
+
+        public String getDestinationPath()
+        {
+            return destinationPath;
+        }
+
+        public void setDestinationPath(String destinationPath)
+        {
+            this.destinationPath = destinationPath;
+        }
+    }
+
+    @RequiresPermission(ReadPermission.class)
+    public class PrepareAction extends SimpleViewAction<PrepareTransferForm>
+    {
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
@@ -115,19 +172,152 @@ public class FileTransferController extends SpringActionController
         }
 
         @Override
-        public ModelAndView getView(Object o, BindException errors) throws Exception
+        public ModelAndView getView(PrepareTransferForm form, BindException errors) throws Exception
         {
-            return null;
+            return new TransferView(form.getAuthorized(), form.getDestinationId(), form.getPath());
         }
     }
 
-    @RequiresPermission(ReadPermission.class)
-    public class AuthAction extends RedirectAction<AuthForm>
+    public static class PrepareTransferForm extends ReturnUrlForm
     {
+        private Boolean authorized = true;
+        private String endpoint_id; // parameter names dictated by https://docs.globus.org/api/helper-pages/browse-endpoint/
+        private String path;
+        private String label;
+
+        public Boolean getAuthorized()
+        {
+            return authorized;
+        }
+
+        public void setAuthorized(Boolean authorized)
+        {
+            this.authorized = authorized;
+        }
+
+        // alias for endpoint_id
+        public String getDestinationId()
+        {
+            return endpoint_id;
+        }
+
+        public void setDestinationId(String destinationId)
+        {
+            endpoint_id = destinationId;
+        }
+
+        public String getEndpoint_id()
+        {
+            return endpoint_id;
+        }
+
+        public void setEndpoint_id(String endpoint_id)
+        {
+            this.endpoint_id = endpoint_id;
+        }
+
+        public String getPath()
+        {
+            return path;
+        }
+
+        public void setPath(String path)
+        {
+            this.path = path;
+        }
+
+        public String getLabel()
+        {
+            return label;
+        }
+
+        public void setLabel(String label)
+        {
+            this.label = label;
+        }
+    }
+
+    /**
+     * This action stores certain properties in the session and then redirects to the authentication provider's
+     * authorization UI.  This redirect contains a parameter indicating the action to return to when authentication is
+     * complete.
+     */
+    @RequiresPermission(ReadPermission.class)
+    public class AuthAction extends SimpleViewAction<TransferSelectionForm>
+    {
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return null;
+        }
+
+        @Override
+        public ModelAndView getView(TransferSelectionForm form, BindException errors) throws Exception
+        {
+            HttpSession session = getViewContext().getRequest().getSession();
+            session.setAttribute(DATA_REGION_SELECTION_KEY, form.getDataRegionSelectionKey());
+            session.setAttribute("fileTransferContainer", getContainer().getId());
+            session.setAttribute("fileTransferWebPartId", form.getWebPartId());
+            session.setAttribute("fileTransferReturnUrl", form.getReturnUrl());
+            OAuth2Authenticator authenticator = new GlobusAuthenticator(getUser(), getContainer());
+            throw new RedirectException(authenticator.getAuthorizationUrl());
+        }
+    }
+
+    public static class TransferSelectionForm extends ReturnUrlForm
+    {
+        private String dataRegionSelectionKey;
+        private Integer webPartId;
+
+        public String getDataRegionSelectionKey()
+        {
+            return dataRegionSelectionKey;
+        }
+
+        public void setDataRegionSelectionKey(String dataRegionSelectionKey)
+        {
+            this.dataRegionSelectionKey = dataRegionSelectionKey;
+        }
+
+        public Integer getWebPartId()
+        {
+            return webPartId;
+        }
+
+        public void setWebPartId(Integer webPartId)
+        {
+            this.webPartId = webPartId;
+        }
+    }
+
+    /**
+     * This action is the target of the authorization action from the file transfer provider.  If authorization has
+     * been granted, the code provided from that authorization will be used to retrieve credentials to be used in
+     * initiating transfer requests.  In any case, this action redirects to a page where we give feedback to the user
+     * and display items for next steps, which are either to return to the page where the initial selection of files was
+     * made, choose a destination endpoint, or initiate a transfer of the selected files.
+     */
+    @RequiresPermission(ReadPermission.class)
+    public class TokensAction extends RedirectAction<AuthForm>
+    {
+        Boolean authorized = true;
+
         @Override
         public URLHelper getSuccessURL(AuthForm authForm)
         {
-            return new ActionURL(FileTransferController.TransferAction.class, getContainer());
+            ActionURL url = new ActionURL(PrepareAction.class, getContainer()).addParameter("authorized", authorized);
+            String returnUrl = (String) getViewContext().getSession().getAttribute("fileTransferReturnUrl");
+            if (returnUrl != null)
+                try
+                {
+                    url.addReturnURL(new URLHelper(returnUrl));
+                }
+                catch (URISyntaxException e)
+                {
+                    logger.error("Invalid URI syntax for returnUrl " + returnUrl + " returning to container start URL", e);
+                    url.addReturnURL(getViewContext().getContainer().getStartURL(getUser()));
+                }
+            return url;
         }
 
         @Override
@@ -135,13 +325,16 @@ public class FileTransferController extends SpringActionController
         {
             if (form.getError() != null)
             {
-                logger.error("Error in authorizing: " + form.getError());
-                return false;
+                // not an error because the user may have simply chosen not to authorize the client.
+                logger.info("Error in authorizing: " + form.getError());
+                this.authorized = false;
+                return true;
             }
             else if (form.getCode() != null)
             {
                 SecurePropertiesDataStore store = new SecurePropertiesDataStore(getUser(), getContainer());
 
+                // TODO check if this actually retrieves from the database or if there's more going on
                 StoredCredential credential = store.get(null);
                 if (credential.getAccessToken() == null || credential.getExpirationTimeMilliseconds() == null || credential.getExpirationTimeMilliseconds() <= 0)
                 {
@@ -155,13 +348,12 @@ public class FileTransferController extends SpringActionController
                     }
                 }
             }
-            return false;
+            return true;
         }
 
         @Override
         public void validateCommand(AuthForm target, Errors errors)
         {
-
         }
     }
 
@@ -203,8 +395,8 @@ public class FileTransferController extends SpringActionController
 
             // @RequiresPermission(ReadPermission.class)
             assertForReadPermission(user,
-                controller.new TransferAction(),
-                controller.new AuthAction()
+                controller.new PrepareAction(),
+                controller.new TokensAction()
             );
 
 //            // @RequiresPermission(AdminOperationsPermission.class)

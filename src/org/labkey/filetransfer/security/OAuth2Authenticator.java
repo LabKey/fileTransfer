@@ -15,6 +15,12 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.DataStore;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
 import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
@@ -24,6 +30,8 @@ import org.labkey.filetransfer.FileTransferManager;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -69,11 +77,33 @@ public abstract class OAuth2Authenticator
             url.set(entry.getKey(), entry.getValue());
         }
         return url.build();
+
+    }
+
+    public Boolean doAuthorization() throws IOException, URISyntaxException
+    {
+        try (CloseableHttpClient httpClient = HttpClients.createDefault())
+        {
+            URI uri = new URI(getAuthorizationUrl());
+            HttpGet httpGet = new HttpGet(uri);
+
+            try (CloseableHttpResponse response = httpClient.execute(httpGet))
+            {
+//                ResponseHandler<String> handler = new BasicResponseHandler();
+                StatusLine status = response.getStatusLine();
+
+                if (status.getStatusCode() != HttpStatus.SC_OK)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public String getRedirectUri()
     {
-        return new ActionURL(FileTransferController.AuthAction.class, container).getURIString();
+        return new ActionURL(FileTransferController.TokensAction.class, container).getURIString();
     }
 
     public String getClientAuthHeader() throws UnsupportedEncodingException

@@ -20,20 +20,34 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
+import org.labkey.api.data.DataRegionSelection;
 import org.labkey.api.data.PropertyManager;
+import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.Sort;
+import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.list.ListDefinition;
 import org.labkey.api.exp.list.ListService;
 import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.Path;
+import org.labkey.api.view.Portal;
+import org.labkey.api.view.ViewContext;
 import org.labkey.api.webdav.WebdavResolver;
 import org.labkey.api.webdav.WebdavResolverImpl;
 
+import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import static org.labkey.api.data.DataRegionSelection.DATA_REGION_SELECTION_KEY;
 
 public class FileTransferManager
 {
@@ -44,6 +58,8 @@ public class FileTransferManager
     public static final String REFERENCE_LIST = "listTable";
     public static final String REFERENCE_COLUMN = "fileNameColumn";
     public static final String SOURCE_ENDPOINT_DIRECTORY = "sourceEndpointDir";
+
+    public static final String WEB_PART_ID_SESSION_KEY = "fileTransferWebPartId";
 
     private FileTransferManager()
     {
@@ -58,6 +74,34 @@ public class FileTransferManager
     public Boolean isMetadataListConfigured(Map<String, String> properties)
     {
         return properties != null && !properties.isEmpty();
+    }
+
+    public List<String> getFileNames(ViewContext context)
+    {
+        HttpSession session = context.getSession();
+        // TODO do we need to get the container from the session as well?
+        String key = (String) session.getAttribute(DATA_REGION_SELECTION_KEY);
+        Set<Integer> selectedInts = new HashSet<>();
+        for (String selection: DataRegionSelection.getSelected(context, key, true, false))
+        {
+            selectedInts.add(Integer.parseInt(selection));
+        }
+        Integer webPartId = (Integer) context.getRequest().getSession().getAttribute(WEB_PART_ID_SESSION_KEY);
+        Portal.WebPart webPart =  Portal.getPart(context.getContainer(), webPartId);
+        Map<String, String> properties = webPart.getPropertyMap();
+        ListDefinition listDef = FileTransferManager.get().getMetadataList(webPart.getPropertyMap());
+        if (listDef != null)
+        {
+            SimpleFilter filter = new SimpleFilter(new SimpleFilter.InClause(FieldKey.fromParts(listDef.getKeyName()), selectedInts));
+            Sort sort = new Sort(FieldKey.fromParts(properties.get(REFERENCE_COLUMN)));
+            TableInfo tableInfo = listDef.getTable(context.getUser());
+            if (tableInfo != null)
+            {
+                TableSelector selector = new TableSelector(tableInfo, Collections.singleton(properties.get(REFERENCE_COLUMN)), filter, sort);
+                return selector.getArrayList(String.class);
+            }
+        }
+        return Collections.emptyList();
     }
 
     @Nullable
@@ -76,7 +120,7 @@ public class FileTransferManager
         return null;
     }
 
-    public String getEndpointPath(Container container)
+    public String getEndpointLocalPath(Container container)
     {
         PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
         return map.get(LOCAL_FILES_DIRECTORY);

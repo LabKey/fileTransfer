@@ -32,7 +32,7 @@ public class FileTransferWebdavProvider implements WebdavService.Provider
         WebdavResolverImpl.WebFolderResource folder = (WebdavResolverImpl.WebFolderResource) target;
         Container c = folder.getContainer();
 
-        String path = FileTransferManager.get().getEndpointPath(c);
+        String path = FileTransferManager.get().getEndpointLocalPath(c);
         if (null != path)
             return PageFlowUtil.set(FILE_LINK);
 
@@ -50,7 +50,7 @@ public class FileTransferWebdavProvider implements WebdavService.Provider
         Container c = folder.getContainer();
         if (null == c)
             return null;
-        String path = FileTransferManager.get().getEndpointPath(c);
+        String path = FileTransferManager.get().getEndpointLocalPath(c);
         if (null == path)
             return null;
         return new FileTransferFolderResource(folder, c, path);
