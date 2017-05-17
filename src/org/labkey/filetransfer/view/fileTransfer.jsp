@@ -41,7 +41,7 @@
                         bean.getFileNames().isEmpty() ? "No files selected." : "";
     if (!notifyMsg.isEmpty())
         notifyMsg += "  No transfer request will be made.";
-    String cancelText = notifyMsg.isEmpty() ? "Cancel" : "OK";
+    String cancelText = "Back";
     ActionURL transferUrl = new ActionURL(FileTransferController.TransferAction.class, getContainer());
     String browseEndpointsUrl = bean.getBrowseEndpointsUrl();
 %>
@@ -58,17 +58,28 @@
             method: 'POST',
             jsonData: {
                 destinationEndpoint: <%= q(bean.getDestination().getId()) %>,
-                destinationPath: <%= q(bean.getDestination().getPath()) %>
+                destinationPath: <%= q(bean.getDestination().getPath()) %>,
+                label: <%= q(bean.getLabel()) %>
             },
             success: function (response) {
                 var jsonResp = LABKEY.Utils.decode(response.responseText);
                 if (jsonResp) {
                     if (jsonResp.success) {
                         Ext4.Msg.show({
-                                    title: 'Transfer Request Made',
-                                    msg: 'Your transfer request has been submitted.  Please check the <%=h(bean.getProviderName())%> website for status information.',
+                                    title: 'Transfer Request ' + <%=q(bean.getLabel() == null ? "" : "\"" + bean.getLabel() + "\"")%> + ' Made',
+                                    msg: jsonResp.data['message'] + '.  Check the <%=h(bean.getProviderName())%> website for status information.',
                                     icon: Ext4.window.MessageBox.INFO,
-                                    buttons: Ext4.Msg.OK
+                                    buttonText: {
+                                        ok: 'OK',
+                                        cancel: "BACK"
+                                    },
+                                    fn: function(btn, text){
+                                        if (btn === 'cancel')
+                                           window.location = <%=q(returnUrl)%>;
+                                        else if (btn === 'ok')
+                                            Ext4.get('transferBtn').dom.className = " labkey-disabled-button"
+                                    },
+                                    buttons: Ext4.Msg.OKCANCEL
                         });
                     }
                     else {
@@ -96,18 +107,13 @@
 <h2><%= h(bean.getProviderName() == null ? "" : bean.getProviderName() ) %> File Transfer</h2>
 
 <br>
+
+<span class="labkey-fileTransfer-notification" id="notification"><%=h(notifyMsg)%></span>
 <%
-    if (!notifyMsg.isEmpty())
+    if (bean.getAuthorized())
     {
 %>
-<span class="labkey-fileTransfer-notification"><%=h(notifyMsg)%></span>
-<br>
-<%
-    }
-    else
-    {
-%>
-Preparing to transfer the following files from directory <%= h(bean.getSource().getPath()) %> on endpoint <%= h(bean.getSource().getDisplayName()) %>.
+Preparing to transfer the following files from directory <%= h(bean.getSource().getPath()) %> on endpoint '<%= h(bean.getSource().getDisplayName()) %>'.
 <ul>
     <%
         for (String filename : bean.getFileNames())
@@ -124,20 +130,22 @@ Preparing to transfer the following files from directory <%= h(bean.getSource().
 %>
 Select destination endpoint.
 <%
-    out.write(PageFlowUtil.button("Browse").href(browseEndpointsUrl).toString());
-%>
-<br><br>
-<%
         }
         else
         {
 %>
-Click the button below to initiate the transfer to directory <%=h(bean.getDestination().getPath())%> on endpoint <%=h(bean.getDestination().getDisplayName())%>
-<br><br>
+Click the 'Transfer' button below to initiate the transfer to directory <%=h(bean.getDestination().getPath())%> on endpoint '<%=h(bean.getDestination().getDisplayName())%>'
+<br>
+<b>OR</b> Select a different destination endpoint.
 <%
         }
+        out.write(PageFlowUtil.button("Browse").href(browseEndpointsUrl).toString());
+%>
+<br><br>
+<%
         Button.ButtonBuilder builder=PageFlowUtil.button("Transfer");
         builder.enabled(transferEnabled);
+        builder.id("transferBtn");
         if (transferEnabled)
         {
             builder.onClick("makeTransferRequest(); return false;");

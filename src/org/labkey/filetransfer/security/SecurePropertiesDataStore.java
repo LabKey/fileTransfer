@@ -4,10 +4,8 @@ import com.google.api.client.auth.oauth2.StoredCredential;
 import com.google.api.client.util.store.DataStore;
 import com.google.api.client.util.store.DataStoreFactory;
 import org.labkey.api.data.Container;
-import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.PropertyManager;
 import org.labkey.api.security.User;
-import org.labkey.api.security.UserManager;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -33,16 +31,6 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
         this.container = container;
     }
 
-    private void parseId(String id)
-    {
-        if (id != null)
-        {
-            String[] parts = id.split(":");
-            container = ContainerManager.getForId(parts[0]);
-            user = UserManager.getUser(Integer.valueOf(parts[1]));
-        }
-    }
-
     private PropertyManager.PropertyMap getProperties(User user, Container container)
     {
         return PropertyManager.getEncryptedStore().getProperties(user, container, FILE_TRANSFER_AUTH_CATEGORY);
@@ -52,7 +40,6 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
     {
         return PropertyManager.getEncryptedStore().getWritableProperties(user, container, FILE_TRANSFER_AUTH_CATEGORY, true);
     }
-
 
     @Override
     public DataStoreFactory getDataStoreFactory()

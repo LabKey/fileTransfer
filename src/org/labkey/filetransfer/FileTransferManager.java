@@ -37,9 +37,13 @@ import org.labkey.api.view.Portal;
 import org.labkey.api.view.ViewContext;
 import org.labkey.api.webdav.WebdavResolver;
 import org.labkey.api.webdav.WebdavResolverImpl;
+import org.labkey.filetransfer.model.TransferEndpoint;
+import org.labkey.filetransfer.provider.GlobusFileTransferProvider;
 
 import javax.servlet.http.HttpSession;
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -60,6 +64,9 @@ public class FileTransferManager
     public static final String SOURCE_ENDPOINT_DIRECTORY = "sourceEndpointDir";
 
     public static final String WEB_PART_ID_SESSION_KEY = "fileTransferWebPartId";
+    public static final String RETURN_URL_SESSION_KEY = "fileTransferReturnUrl";
+    public static final String ENDPOINT_ID_SESSION_KEY = "destinationEndpointId";
+    public static final String ENDPOINT_PATH_SESSION_KEY = "destinationEndpointPath";
 
     private FileTransferManager()
     {
@@ -76,6 +83,15 @@ public class FileTransferManager
         return properties != null && !properties.isEmpty();
     }
 
+    private Map<String, String> getWebPartProperties(ViewContext context)
+    {
+        Integer webPartId = (Integer) context.getRequest().getSession().getAttribute(WEB_PART_ID_SESSION_KEY);
+        if (webPartId == null)
+            return Collections.emptyMap();
+        Portal.WebPart webPart =  Portal.getPart(context.getContainer(), webPartId);
+        return webPart.getPropertyMap();
+    }
+
     public List<String> getFileNames(ViewContext context)
     {
         HttpSession session = context.getSession();
@@ -86,10 +102,8 @@ public class FileTransferManager
         {
             selectedInts.add(Integer.parseInt(selection));
         }
-        Integer webPartId = (Integer) context.getRequest().getSession().getAttribute(WEB_PART_ID_SESSION_KEY);
-        Portal.WebPart webPart =  Portal.getPart(context.getContainer(), webPartId);
-        Map<String, String> properties = webPart.getPropertyMap();
-        ListDefinition listDef = FileTransferManager.get().getMetadataList(webPart.getPropertyMap());
+        Map<String, String> properties = getWebPartProperties(context);
+        ListDefinition listDef = FileTransferManager.get().getMetadataList(properties);
         if (listDef != null)
         {
             SimpleFilter filter = new SimpleFilter(new SimpleFilter.InClause(FieldKey.fromParts(listDef.getKeyName()), selectedInts));
@@ -126,10 +140,29 @@ public class FileTransferManager
         return map.get(LOCAL_FILES_DIRECTORY);
     }
 
-    public String getSourceEndpointDir(Container container)
+    public String getSourceEndpointDir(ViewContext context)
     {
-        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
-        return map.get(SOURCE_ENDPOINT_DIRECTORY);
+        Map<String, String> properties = getWebPartProperties(context);
+        return properties.get(SOURCE_ENDPOINT_DIRECTORY);
+    }
+
+    public TransferEndpoint getDestinationEndpoint(ViewContext context) throws IOException, URISyntaxException
+    {
+        String id = (String) context.getSession().getAttribute(ENDPOINT_ID_SESSION_KEY);
+        String path = (String) context.getSession().getAttribute(ENDPOINT_PATH_SESSION_KEY);
+        TransferEndpoint endpoint = null;
+        if (id != null && path != null)
+        {
+            GlobusFileTransferProvider provider = new GlobusFileTransferProvider(context.getContainer(), context.getUser());
+            endpoint = provider.getEndpoint(id);
+
+            if (endpoint != null)
+            {
+                endpoint.setPath((String) context.getSession().getAttribute(ENDPOINT_PATH_SESSION_KEY));
+            }
+
+        }
+        return endpoint;
     }
 
     public WebdavResolver.LookupResult getDavResource(Container container)
@@ -199,8 +232,10 @@ public class FileTransferManager
         return clientId != null && clientSecret != null && baseUrl != null;
     }
 
-    public String getGlobusTransferUiUrl(Container container)
+    // TODO move to GlobusProvider class?
+    public String getGlobusTransferUiUrl(ViewContext context)
     {
+        Container container = context.getContainer();
         String baseUrl = getServiceBaseUrl(container);
         String endpointId = getSourceEndpointId(container);
         if (StringUtils.isNotBlank(baseUrl) && StringUtils.isNotBlank(endpointId))
@@ -209,7 +244,7 @@ public class FileTransferManager
             String transferUrl = baseUrl.trim() + (!baseUrl.trim().endsWith("?") ? "?" : "")
                     + "origin_id=" + PageFlowUtil.encode(endpointId.trim());
 
-            String endpointDir = getSourceEndpointDir(container);
+            String endpointDir = getSourceEndpointDir(context);
             if (StringUtils.isNotBlank(endpointDir))
                 transferUrl += "&origin_path=" + PageFlowUtil.encode(endpointDir.trim());
 

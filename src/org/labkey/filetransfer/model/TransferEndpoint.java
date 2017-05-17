@@ -1,8 +1,11 @@
 package org.labkey.filetransfer.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Created by susanh on 5/14/17.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TransferEndpoint
 {
     private String id;

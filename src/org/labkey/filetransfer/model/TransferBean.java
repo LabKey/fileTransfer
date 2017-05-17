@@ -14,7 +14,8 @@ public class TransferBean
     private TransferEndpoint destination;
     private String providerName;
     private String transferResultMsg;
-    private String browseEndpointUrl;
+    private String browseEndpointsUrl;
+    private String label;
 
     public Boolean getAuthorized()
     {
@@ -88,11 +89,22 @@ public class TransferBean
 
     public String getBrowseEndpointsUrl()
     {
-        return browseEndpointUrl;
+        return browseEndpointsUrl;
     }
 
-    public void setBrowseEndpointUrl(String browseEndpointUrl)
+    public void setBrowseEndpointsUrl(String browseEndpointsUrl)
     {
-        this.browseEndpointUrl = browseEndpointUrl;
+        this.browseEndpointsUrl = browseEndpointsUrl;
     }
+
+    public String getLabel()
+    {
+        return label;
+    }
+
+    public void setLabel(String label)
+    {
+        this.label = label;
+    }
+
 }

@@ -71,7 +71,7 @@ public class FileTransferMetadataQueryView extends QueryView
                 bar.add(transferBtn);
             }
         }
-        String transferLinkUrl = manager.getGlobusTransferUiUrl(view.getViewContext().getContainer());
+        String transferLinkUrl = manager.getGlobusTransferUiUrl(view.getViewContext());
         if (transferLinkUrl != null)
         {
             StringExpression url = StringExpressionFactory.createURL(transferLinkUrl);
