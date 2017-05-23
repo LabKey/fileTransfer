@@ -44,7 +44,7 @@ public class FileTransferMetadataWebPartFactory extends BaseWebPartFactory
             ListDefinition listDef = manager.getMetadataList(propertyMap);
             if (listDef != null)
             {
-                QuerySettings settings = schema.getSettings(context, getDataRegionName(listDef), FileTransferQuerySchema.FILE_METADATA_TABLE_NAME + "_" + listDef.getListId());
+                QuerySettings settings = schema.getSettings(context, getDataRegionName(listDef), FileTransferQuerySchema.FILE_METADATA_TABLE_NAME);
                 FileTransferMetadataQueryView listView = new FileTransferMetadataQueryView(webPart, schema, settings, null);
                 view.setView("metadataList", listView);
             }
@@ -54,7 +54,7 @@ public class FileTransferMetadataWebPartFactory extends BaseWebPartFactory
 
     public HttpView getEditView(Portal.WebPart webPart, ViewContext context)
     {
-        return new FileTransferWebPartConfigView(webPart);
+        return new FileTransferWebPartConfigView(webPart, context);
     }
 
     public static String getDataRegionName(ListDefinition listDef)

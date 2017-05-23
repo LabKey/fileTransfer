@@ -1,14 +1,10 @@
 package org.labkey.filetransfer.config;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.settings.AbstractWriteableSettingsGroup;
 import org.labkey.filetransfer.model.TransferEndpoint;
 import org.labkey.filetransfer.view.FileTransferConfigForm;
-
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * Created by susanh on 5/19/17.
@@ -24,6 +20,8 @@ public class FileTransferSettings extends AbstractWriteableSettingsGroup
     private static final String TRANSFER_API_URL_PREFIX = "transferApiUrlPrefix";
     private static final String TRANSFER_UI_URL_PREFIX = "transferUrlPrefix";
     private static final String BROWSE_ENDPOINT_URL_PREFIX = "browseEndpointUrlPrefix";
+    private static final String SOURCE_ENDPOINT_ID = "sourceEndpointId";
+    private static final String SOURCE_ENDPOINT_NAME = "sourceEndpointName";
 
     private String _providerName;
 
@@ -90,15 +88,13 @@ public class FileTransferSettings extends AbstractWriteableSettingsGroup
         return getRawPropertyValue(BROWSE_ENDPOINT_URL_PREFIX);
     }
 
-    @NotNull
-    public Map<String, TransferEndpoint> getEndpoints()
+    public TransferEndpoint getEndpoint()
     {
-        return Collections.emptyMap();
-    }
-
-    public TransferEndpoint getEndpoint(String propertyName)
-    {
-        return getEndpoints().get(propertyName);
+        String endpointId = getRawPropertyValue(SOURCE_ENDPOINT_ID);
+        String name = getRawPropertyValue(SOURCE_ENDPOINT_NAME);
+        TransferEndpoint endpoint= new TransferEndpoint(endpointId, null);
+        endpoint.setDisplayName(name);
+        return endpoint;
     }
 
     @Override
@@ -121,6 +117,8 @@ public class FileTransferSettings extends AbstractWriteableSettingsGroup
         storeStringValue(TRANSFER_API_URL_PREFIX, form.getTransferApiUrlPrefix());
         storeStringValue(TRANSFER_UI_URL_PREFIX, form.getTransferUiUrlPrefix());
         storeStringValue(BROWSE_ENDPOINT_URL_PREFIX, form.getBrowseEndpointUrlPrefix());
+        storeStringValue(SOURCE_ENDPOINT_ID, form.getSourceEndpointId());
+        storeStringValue(SOURCE_ENDPOINT_NAME, form.getSourceEndpointDisplayName());
         save();
 
     }

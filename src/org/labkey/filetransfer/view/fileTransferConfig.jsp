@@ -156,11 +156,38 @@
             allowBlank: false
         });
 
-
         var endpointsHeader = Ext4.create('Ext.form.Label', {
-            text: 'Endpoints',
+            text: 'Source Endpoint',
             style: 'font-weight: bold; font-size: large'
         });
+
+
+        var endpointId = Ext4.create('Ext.form.field.Text', {
+                    name: "sourceEndpointId",
+                    labelWidth: 200,
+                    width: 535,
+                    padding: '10px 0 0 25px',
+                    hidden: false,
+                    disabled: false,
+                    fieldLabel: "Endpoint Id" + getFieldHoverText('Source Endpoint Id', 'The unique id assigned by the file transfer provider to the source endpoint for transfer requests.'),
+                    initialValue: <%=q(bean.getSourceEndpointId())%>,
+                    value: <%=q(bean.getSourceEndpointId())%>,
+                    allowBlank: true
+                });
+
+        var endpointName = Ext4.create('Ext.form.field.Text', {
+                    name: 'sourceEndpointDisplayName',
+                    labelWidth: 200,
+                    width: 535,
+                    padding: '10px 0 0 25px',
+                    hidden: false,
+                    disabled: false,
+                    fieldLabel: "Endpoint Name" + getFieldHoverText('Source Endpoint Name', 'The display name for the source endpoint.'),
+                    initialValue: <%=q(bean.getSourceEndpointDisplayName())%>,
+                    value: <%=q(bean.getSourceEndpointDisplayName())%>,
+                    allowBlank: true
+                });
+
 
         var cancelButton = Ext4.create('Ext.button.Button', {
             text: 'Cancel',
@@ -208,7 +235,9 @@
                 browseEndpointUrl,
                 transferApiUrl,
                 transferUiUrl,
-//                endpointsHeader,
+                endpointsHeader,
+                endpointId,
+                endpointName,
                 { xtype: 'hidden', name: 'X-LABKEY-CSRF', value: LABKEY.CSRF }
             ],
             buttons: [

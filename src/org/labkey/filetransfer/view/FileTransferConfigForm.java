@@ -1,9 +1,6 @@
 package org.labkey.filetransfer.view;
 
 import org.labkey.api.action.ReturnUrlForm;
-import org.labkey.filetransfer.model.TransferEndpoint;
-
-import java.util.Map;
 
 /**
  * Created by susanh on 5/22/17.
@@ -18,7 +15,8 @@ public class FileTransferConfigForm extends ReturnUrlForm
     private String transferApiUrlPrefix;
     private String transferUiUrlPrefix;
     private String browseEndpointUrlPrefix;
-    private Map<String, TransferEndpoint> endpoints;
+    private String sourceEndpointId;
+    private String sourceEndpointDisplayName;
 
     public String getRootDir()
     {
@@ -60,14 +58,24 @@ public class FileTransferConfigForm extends ReturnUrlForm
         this.clientSecret = clientSecret;
     }
 
-    public Map<String, TransferEndpoint> getEndpoints()
+    public String getSourceEndpointId()
     {
-        return endpoints;
+        return sourceEndpointId;
     }
 
-    public void setEndpoints(Map<String, TransferEndpoint> endpoints)
+    public void setSourceEndpointId(String sourceEndpointId)
     {
-        this.endpoints = endpoints;
+        this.sourceEndpointId = sourceEndpointId;
+    }
+
+    public String getSourceEndpointDisplayName()
+    {
+        return sourceEndpointDisplayName;
+    }
+
+    public void setSourceEndpointDisplayName(String sourceEndpointDisplayName)
+    {
+        this.sourceEndpointDisplayName = sourceEndpointDisplayName;
     }
 
     public String getAuthUrlPrefix()

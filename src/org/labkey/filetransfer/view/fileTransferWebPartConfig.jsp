@@ -20,6 +20,8 @@
 <%@ page import="org.labkey.api.view.JspView" %>
 <%@ page import="org.labkey.api.view.Portal" %>
 <%@ page import="org.labkey.api.view.template.ClientDependencies" %>
+<%@ page import="org.labkey.filetransfer.provider.FileTransferProvider" %>
+<%@ page import="org.labkey.filetransfer.view.WebPartConfigBean" %>
 <%@ page import="java.util.Map" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
@@ -31,9 +33,13 @@
     }
 %>
 <%
-    JspView<Portal.WebPart>  me = (JspView<Portal.WebPart>) JspView.currentView();
-    Portal.WebPart webPart = me.getModelBean();
+    JspView<WebPartConfigBean>  me = (JspView<WebPartConfigBean>) JspView.currentView();
+    WebPartConfigBean bean = me.getModelBean();
+    Portal.WebPart webPart = bean.getWebPart();
+    FileTransferProvider provider = bean.getProvider();
     Map<String, String> properties = webPart.getPropertyMap();
+    String initialDir = properties.get("localFilesDirectory") == null ? provider.getSettings().getFileTransferRoot() : properties.get("localFilesDirectory");
+//    String initialDir = "TEST";
     String title = properties.get("webpart.title") != null ? properties.get("webpart.title"): "File Transfer";
 %>
 <labkey:errors/>
@@ -47,6 +53,10 @@
             return '<a href="#" onclick="return showHelpDiv(this, \'' + title + '\', \'' + details + '\');" '
                     + 'onmouseover="return showHelpDivDelay(this, \'' + title + '\', \'' + details + '\');" '
                     + 'onmouseout="return hideHelpDivDelay();"><span class="labkey-help-pop-up">?</span></a>';
+        };
+
+        var isValidPath = function(path) {
+            return path[0] 
         };
 
         var webPartTitle = Ext4.create("Ext.form.field.Text", {
@@ -74,10 +84,14 @@
             padding: '10px 0 25px 0',
             hidden: false,
             disabled: false,
+            <%--fieldLabel: "Local Directory" + getFieldHoverText('Local Directory', 'Specify the directory on the '--%>
+                    <%--+ 'local file system relative to <%=h(provider.getSettings().getFileTransferRoot())%> where the files to be transferred in this webpart are available.'),--%>
+            initialValue : <%=q(initialDir)%>,
+            value: <%=q(initialDir)%>,
             fieldLabel: "Local Directory" + getFieldHoverText('Local Directory', 'Specify the directory on the '
                             + 'local file system where the files to be transferred in this webpart are available.'),
-            initialValue : <%=q(properties.get("localFilesDirectory"))%>,
-            value: <%=q(properties.get("localFilesDirectory"))%>,
+            <%--initialValue : <%=q(properties.get("localFilesDirectory"))%>,--%>
+            <%--value: <%=q(properties.get("localFilesDirectory"))%>,--%>
             allowBlank: false
         });
 
@@ -96,7 +110,7 @@
         var providerNameField = Ext4.create('Ext.form.field.Text', {
             name: 'fileTransferProvider',
             hidden: true,
-            value: "Globus"
+            value: <%=q(provider.getName())%>
         });
 
         var containerComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeContainerComboConfig({

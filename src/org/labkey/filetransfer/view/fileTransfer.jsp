@@ -37,10 +37,12 @@
     JspView<TransferBean>  me = (JspView<TransferBean>) JspView.currentView();
     TransferBean bean = me.getModelBean();
     String returnUrl = bean.getReturnUrl();
-    Boolean transferEnabled = bean.getAuthorized() && bean.getDestination() != null && bean.getTransferResultMsg() == null;
+    Boolean transferEnabled = bean.getAuthorized() && bean.getSource() != null && bean.getDestination() != null && bean.getTransferResultMsg() == null;
     String notifyMsg = "";
     if (bean.getErrorCode() == FileTransferManager.ErrorCode.noProvider)
         notifyMsg = "No file transfer provider available in the session.";
+    else if (bean.getSource() == null)
+        notifyMsg = "Source endpoint has not yet been configured.";
     else if (!bean.getAuthorized())
         notifyMsg = "User has not authorized LabKey Server for file transfer using " + bean.getProviderName() + ".";
     else if (bean.getFileNames().isEmpty())
@@ -118,7 +120,7 @@
 
 <span class="labkey-fileTransfer-notification" id="notification"><%=h(notifyMsg)%></span>
 <%
-    if (bean.getAuthorized())
+    if (bean.getAuthorized() && bean.getSource() != null)
     {
 %>
 Preparing to transfer the following files from directory <%= h(bean.getSource().getPath()) %> on endpoint '<%= h(bean.getSource().getDisplayName()) %>'.

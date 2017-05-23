@@ -159,30 +159,15 @@ public class GlobusFileTransferProvider extends FileTransferProvider
     public String getTransferUiUrl(Map<String, String> properties, ViewContext context)
     {
         String baseUrl = settings.getTransferUiUrlPrefix();
-        // TODO
-//        TransferEndpoint sourceEndpoint = settings.getEndpoint(properties.get("sourceEndpointKey"));
-//        if (StringUtils.isNotBlank(baseUrl) && sourceEndpoint != null)
-//        {
-//            // ex: https://www.globus.org/app/transfer?origin_id=<ENDPOINT_ID>&origin_path=<ENDPOINT_DIR>
-//            String transferUrl = baseUrl.trim() + (!baseUrl.trim().endsWith("?") ? "?" : "")
-//                    + "origin_id=" + PageFlowUtil.encode(sourceEndpoint.getId());
-//
-//            String endpointDir = sourceEndpoint.getPath();
-//            if (StringUtils.isNotBlank(endpointDir))
-//                transferUrl += "&origin_path=" + PageFlowUtil.encode(endpointDir.trim());
-//
-//            return transferUrl;
-//        }
 
-        String endpointId = FileTransferManager.get().getSourceEndpointId(context.getContainer());
-        if (StringUtils.isNotBlank(baseUrl) && StringUtils.isNotBlank(endpointId))
+        TransferEndpoint sourceEndpoint = FileTransferManager.get().getSourceEndpoint(context);
+        if (StringUtils.isNotBlank(baseUrl) && sourceEndpoint != null)
         {
             // ex: https://www.globus.org/app/transfer?origin_id=<ENDPOINT_ID>&origin_path=<ENDPOINT_DIR>
             String transferUrl = baseUrl.trim() + (!baseUrl.trim().endsWith("?") ? "?" : "")
-                    + "origin_id=" + PageFlowUtil.encode(endpointId.trim());
+                    + "origin_id=" + PageFlowUtil.encode(sourceEndpoint.getId());
 
-            String endpointDir = FileTransferManager.get().getSourceEndpointDir(context);
-
+            String endpointDir = sourceEndpoint.getPath();
             if (StringUtils.isNotBlank(endpointDir))
                 transferUrl += "&origin_path=" + PageFlowUtil.encode(endpointDir.trim());
 

@@ -27,18 +27,13 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.list.ListDefinition;
 import org.labkey.api.exp.list.ListService;
-import org.labkey.api.module.Module;
-import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.query.FieldKey;
-import org.labkey.api.util.Path;
 import org.labkey.api.view.Portal;
 import org.labkey.api.view.ViewContext;
-import org.labkey.api.webdav.WebdavResolver;
-import org.labkey.api.webdav.WebdavResolverImpl;
 import org.labkey.filetransfer.config.FileTransferSettings;
+import org.labkey.filetransfer.globus.GlobusFileTransferProvider;
 import org.labkey.filetransfer.model.TransferEndpoint;
 import org.labkey.filetransfer.provider.FileTransferProvider;
-import org.labkey.filetransfer.globus.GlobusFileTransferProvider;
 import org.labkey.filetransfer.provider.Registry;
 
 import javax.servlet.http.HttpSession;
@@ -62,12 +57,11 @@ public class FileTransferManager
     public static final String REFERENCE_FOLDER = "listFolder";
     public static final String REFERENCE_LIST = "listTable";
     public static final String REFERENCE_COLUMN = "fileNameColumn";
-    public static final String SOURCE_ENDPOINT_KEY = "sourceEndpointKey";
     public static final String SOURCE_ENDPOINT_DIRECTORY = "sourceEndpointDir";
 
     public static final String WEB_PART_ID_SESSION_KEY = "fileTransferWebPartId";
     public static final String RETURN_URL_SESSION_KEY = "fileTransferReturnUrl";
-    public static final String FILE_TRANSFER_PROVIDER = "fileTransferProviderKey";
+    public static final String FILE_TRANSFER_PROVIDER = "fileTransferProvider";
     public static final String ENDPOINT_ID_SESSION_KEY = "destinationEndpointId";
     public static final String ENDPOINT_PATH_SESSION_KEY = "destinationEndpointPath";
 
@@ -102,7 +96,8 @@ public class FileTransferManager
 
     public FileTransferProvider getProvider(ViewContext context)
     {
-        return Registry.get().getProvider(context.getContainer(), context.getUser(), (String) context.getSession().getAttribute(FileTransferManager.FILE_TRANSFER_PROVIDER));
+        Map<String, String> properties = getWebPartProperties(context);
+        return Registry.get().getProvider(context.getContainer(), context.getUser(), properties.get(FILE_TRANSFER_PROVIDER));
     }
 
     public TransferEndpoint getSourceEndpoint(ViewContext context)
@@ -112,8 +107,10 @@ public class FileTransferManager
             return null;
 
         FileTransferSettings settings = provider.getSettings();
+        TransferEndpoint endpoint = settings.getEndpoint();
         Map<String, String> properties = getWebPartProperties(context);
-        return settings.getEndpoint(properties.get(SOURCE_ENDPOINT_KEY));
+        endpoint.setPath(properties.get(SOURCE_ENDPOINT_DIRECTORY));
+        return endpoint;
     }
 
     public List<String> getFileNames(ViewContext context)
@@ -183,52 +180,21 @@ public class FileTransferManager
         return endpoint;
     }
 
-    public WebdavResolver.LookupResult getDavResource(Container container)
-    {
-        Path path =  getDavPath(container);
-        return WebdavResolverImpl.get().lookupEx(path);
-    }
-
-    public Path getDavPath(Container container)
-    {
-        return new Path("_webdav").append(container.getParsedPath()).append(FileTransferWebdavProvider.FILE_LINK);
-    }
-
-    public List<String> getActiveFiles(Container container)
+    public List<String> getActiveFiles(String localDir)
     {
         List<String> activeFiles = new ArrayList<>();
-        WebdavResolver.LookupResult lookupResult = FileTransferManager.get().getDavResource(container);
-        if (lookupResult != null && lookupResult.resource != null && lookupResult.resource instanceof FileTransferWebdavProvider.FileTransferFolderResource)
+        if (localDir != null)
         {
-            FileTransferWebdavProvider.FileTransferFolderResource fileResources = (FileTransferWebdavProvider.FileTransferFolderResource) lookupResult.resource;
-            File fileDirectory = fileResources.getFile();
-            if (fileDirectory != null)
+            File directory = new File(localDir);
+            File[] directoryFiles = directory.listFiles();
+            if (directoryFiles != null)
             {
-                File[] files = fileDirectory.listFiles();
-                if (files != null)
+                for (File file : directoryFiles)
                 {
-                    for (File file : files)
-                    {
-                        if (file.isFile())
-                            activeFiles.add(file.getName());
-                    }
+                    activeFiles.add(file.getName());
                 }
             }
         }
         return activeFiles;
-    }
-
-
-    // TODO this will choose an identifier for an endpoint configured in admin console.
-    public String getSourceEndpointDir(ViewContext context)
-    {
-        Map<String, String> properties = getWebPartProperties(context);
-        return properties.get(SOURCE_ENDPOINT_DIRECTORY);
-    }
-
-    public String getSourceEndpointId(Container container)
-    {
-        Module module = ModuleLoader.getInstance().getModule(FileTransferModule.NAME);
-        return module.getModuleProperties().get(FileTransferModule.FILE_TRANSFER_SOURCE_ENDPOINT_ID).getEffectiveValue(container);
     }
 }

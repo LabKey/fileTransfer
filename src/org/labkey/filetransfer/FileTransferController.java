@@ -112,7 +112,9 @@ public class FileTransferController extends SpringActionController
             form.setClientSecret(settings.getClientSecret());
             form.setClientId(settings.getClientId());
             form.setRootDir(settings.getFileTransferRoot());
-            form.setEndpoints(settings.getEndpoints());
+            TransferEndpoint sourceEndpoint = settings.getEndpoint();
+            form.setSourceEndpointId(sourceEndpoint.getId());
+            form.setSourceEndpointDisplayName(sourceEndpoint.getDisplayName());
             form.setAuthUrlPrefix(settings.getAuthUrlPrefix());
             form.setBrowseEndpointUrlPrefix(settings.getBrowseEndpointUrlPrefix());
             form.setTransferApiUrlPrefix(settings.getTransferApiUrlPrefix());
@@ -167,7 +169,6 @@ public class FileTransferController extends SpringActionController
         {
             HttpSession session = getViewContext().getRequest().getSession();
             session.setAttribute(DATA_REGION_SELECTION_KEY, form.getDataRegionSelectionKey());
-            session.setAttribute(FileTransferManager.FILE_TRANSFER_PROVIDER, form.getFileTransferProviderKey());
             session.setAttribute("fileTransferContainer", getContainer().getId());
             session.setAttribute(FileTransferManager.WEB_PART_ID_SESSION_KEY, form.getWebPartId());
             session.setAttribute(FileTransferManager.RETURN_URL_SESSION_KEY, form.getReturnUrl());
@@ -180,7 +181,6 @@ public class FileTransferController extends SpringActionController
     {
         private String dataRegionSelectionKey;
         private Integer webPartId;
-        private String fileTransferProviderKey;
 
         public String getDataRegionSelectionKey()
         {
@@ -200,16 +200,6 @@ public class FileTransferController extends SpringActionController
         public void setWebPartId(Integer webPartId)
         {
             this.webPartId = webPartId;
-        }
-
-        public String getFileTransferProviderKey()
-        {
-            return fileTransferProviderKey;
-        }
-
-        public void setFileTransferProviderKey(String fileTransferProviderKey)
-        {
-            this.fileTransferProviderKey = fileTransferProviderKey;
         }
     }
 

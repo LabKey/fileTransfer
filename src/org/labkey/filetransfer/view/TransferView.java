@@ -28,19 +28,7 @@ public class TransferView extends JspView<TransferBean>
 
         TransferBean bean = new TransferBean();
 
-        TransferEndpoint sourceEndpoint = FileTransferManager.get().getSourceEndpoint(context);
-//        sourceEndpoint = provider.getEndpoint(FileTransferManager.get().getSourceEndpointId(context.getContainer()));
-        if (sourceEndpoint == null)
-        {
-            bean.setSource(new TransferEndpoint(FileTransferManager.get().getSourceEndpointId(context.getContainer()),
-                FileTransferManager.get().getSourceEndpointDir(context)));
-        }
-        else
-        {
-            sourceEndpoint.setPath(FileTransferManager.get().getSourceEndpointDir(context));
-            bean.setSource(sourceEndpoint);
-        }
-
+        bean.setSource(FileTransferManager.get().getSourceEndpoint(context));
         bean.setBrowseEndpointsUrl(provider.getBrowseEndpointUrl(context.getContainer()));
         bean.setProviderName(provider.getName());
         bean.setAuthorized(form.getAuthorized());

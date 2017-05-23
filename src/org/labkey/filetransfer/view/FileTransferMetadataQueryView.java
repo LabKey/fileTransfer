@@ -49,7 +49,7 @@ public class FileTransferMetadataQueryView extends QueryView
     @Override
     protected TableInfo createTable()
     {
-        return listDef == null ? null : new FileTransferMetadataTable(properties, listDef.getTable(getUser()), new FileTransferQuerySchema(getUser(), getContainer()));
+        return listDef == null ? null : new FileTransferMetadataTable(properties, listDef.getTable(getUser()), new FileTransferQuerySchema(getUser(), getContainer()), getViewContext());
     }
 
     @Override
@@ -64,7 +64,6 @@ public class FileTransferMetadataQueryView extends QueryView
             String transferUrl = new ActionURL(FileTransferController.AuthAction.class, view.getViewContext().getContainer())
                     .addParameter(DataRegionSelection.DATA_REGION_SELECTION_KEY, view.getDataRegion().getSelectionKey())
                     .addParameter("webPartId", webPart.getRowId())
-                    .addParameter(FileTransferManager.FILE_TRANSFER_PROVIDER, provider.getName())
                     .addReturnURL(view.getViewContext().getActionURL())
                     .toString();
             if (transferUrl != null)
