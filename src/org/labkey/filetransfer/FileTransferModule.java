@@ -20,8 +20,11 @@ import org.jetbrains.annotations.NotNull;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleProperty;
+import org.labkey.api.settings.AdminConsole;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.api.webdav.WebdavService;
+import org.labkey.filetransfer.globus.GlobusFileTransferProvider;
+import org.labkey.filetransfer.provider.Registry;
 import org.labkey.filetransfer.query.FileTransferQuerySchema;
 import org.labkey.filetransfer.view.FileTransferMetadataWebPartFactory;
 
@@ -34,10 +37,7 @@ public class FileTransferModule extends DefaultModule
 {
     public static final String NAME = "FileTransfer";
     public static final String SCHEMA_NAME = "fileTransfer";
-    public static final String FILE_TRANSFER_SERVICE_BASE_URL = "FileTransferServiceBaseUrl";
     public static final String FILE_TRANSFER_SOURCE_ENDPOINT_ID = "FileTransferSourceEndpointId";
-    public static final String FILE_TRANSFER_CLIENT_ID = "FileTransferClientId";
-    public static final String FILE_TRANSFER_CLIENT_SECRET = "FileTransferClientSecret";
 
     @Override
     public String getName()
@@ -67,16 +67,16 @@ public class FileTransferModule extends DefaultModule
         return false;
     }
 
+    public static void registerAdminConsoleLinks()
+    {
+        AdminConsole.addLink(AdminConsole.SettingsLinkType.Configuration, "File Transfer", FileTransferController.getComplianceSettingsURL());
+    }
+
     @Override
     protected void doStartup(ModuleContext moduleContext)
     {
-        ModuleProperty serviceBaseUrlProp = new ModuleProperty(this, FILE_TRANSFER_SERVICE_BASE_URL);
-        serviceBaseUrlProp.setLabel("Service Base URL");
-        serviceBaseUrlProp.setDescription("The base URL for the file transfer service. Example: https://www.globus.org/app/transfer.");
-        serviceBaseUrlProp.setCanSetPerContainer(true);
-        serviceBaseUrlProp.setShowDescriptionInline(true);
-        serviceBaseUrlProp.setInputFieldWidth(600);
-        this.addModuleProperty(serviceBaseUrlProp);
+        registerAdminConsoleLinks();
+        Registry.registerProvider(GlobusFileTransferProvider.NAME, GlobusFileTransferProvider.class);
 
         ModuleProperty sourceEndpointIdProp = new ModuleProperty(this, FILE_TRANSFER_SOURCE_ENDPOINT_ID);
         sourceEndpointIdProp.setLabel("Source Endpoint ID");
@@ -84,21 +84,6 @@ public class FileTransferModule extends DefaultModule
         sourceEndpointIdProp.setCanSetPerContainer(true);
         sourceEndpointIdProp.setShowDescriptionInline(true);
         this.addModuleProperty(sourceEndpointIdProp);
-
-        ModuleProperty clientIdProp = new ModuleProperty(this, FILE_TRANSFER_CLIENT_ID);
-        clientIdProp.setLabel("Client Id");
-        clientIdProp.setDescription("The id assigned by the file transfer provider to identify this application as its client.");
-        clientIdProp.setCanSetPerContainer(true);
-        clientIdProp.setShowDescriptionInline(true);
-        this.addModuleProperty(clientIdProp);
-
-        ModuleProperty clientSecretProp = new ModuleProperty(this, FILE_TRANSFER_CLIENT_SECRET);
-        clientSecretProp.setLabel("Client Secret");
-        clientSecretProp.setDescription("The secret associated with the Client Id used for authenticating requests to the file transfer provider.");
-        clientSecretProp.setCanSetPerContainer(true);
-        clientSecretProp.setShowDescriptionInline(true);
-        this.addModuleProperty(clientSecretProp);
-
     }
 
     @Override

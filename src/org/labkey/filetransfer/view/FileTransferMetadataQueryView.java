@@ -3,7 +3,6 @@ package org.labkey.filetransfer.view;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.data.ButtonBar;
-import org.labkey.api.data.Container;
 import org.labkey.api.data.DataRegionSelection;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.list.ListDefinition;
@@ -17,6 +16,8 @@ import org.labkey.api.view.DataView;
 import org.labkey.api.view.Portal;
 import org.labkey.filetransfer.FileTransferController;
 import org.labkey.filetransfer.FileTransferManager;
+import org.labkey.filetransfer.provider.FileTransferProvider;
+import org.labkey.filetransfer.provider.Registry;
 import org.labkey.filetransfer.query.FileTransferMetadataTable;
 import org.labkey.filetransfer.query.FileTransferQuerySchema;
 import org.springframework.validation.Errors;
@@ -31,6 +32,7 @@ public class FileTransferMetadataQueryView extends QueryView
     Portal.WebPart webPart;
     Map<String, String> properties;
     ListDefinition listDef;
+    FileTransferProvider provider;
 
     public FileTransferMetadataQueryView(Portal.WebPart webPart, UserSchema schema, QuerySettings settings, @Nullable Errors errors)
     {
@@ -40,6 +42,7 @@ public class FileTransferMetadataQueryView extends QueryView
         if (this.properties != null)
         {
             listDef = FileTransferManager.get().getMetadataList(webPart.getPropertyMap());
+            provider = Registry.get().getProvider(getContainer(), getUser(), this.properties.get("fileTransferProvider"));
         }
     }
 
@@ -53,14 +56,15 @@ public class FileTransferMetadataQueryView extends QueryView
     protected void populateButtonBar(DataView view, ButtonBar bar)
     {
         super.populateButtonBar(view, bar);
+        if (provider == null)
+            return;
 
-        Container container = view.getViewContext().getContainer();
-        FileTransferManager manager = FileTransferManager.get();
-        if (manager.isTransferConfigured(container))
+        if (provider.isTransferApiConfigured())
         {
             String transferUrl = new ActionURL(FileTransferController.AuthAction.class, view.getViewContext().getContainer())
                     .addParameter(DataRegionSelection.DATA_REGION_SELECTION_KEY, view.getDataRegion().getSelectionKey())
                     .addParameter("webPartId", webPart.getRowId())
+                    .addParameter(FileTransferManager.FILE_TRANSFER_PROVIDER, provider.getName())
                     .addReturnURL(view.getViewContext().getActionURL())
                     .toString();
             if (transferUrl != null)
@@ -71,7 +75,7 @@ public class FileTransferMetadataQueryView extends QueryView
                 bar.add(transferBtn);
             }
         }
-        String transferLinkUrl = manager.getGlobusTransferUiUrl(view.getViewContext());
+        String transferLinkUrl = provider.getTransferUiUrl(properties, getViewContext());
         if (transferLinkUrl != null)
         {
             StringExpression url = StringExpressionFactory.createURL(transferLinkUrl);

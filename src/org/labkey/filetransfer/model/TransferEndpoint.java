@@ -11,7 +11,7 @@ public class TransferEndpoint
     private String id;
     private String displayName;
     private String path;
-    private String organization;
+    private String localDirectory;
 
     public TransferEndpoint()
     {}
@@ -44,16 +44,6 @@ public class TransferEndpoint
 
     public void setDisplay_name(String displayName) { setDisplayName(displayName); }
 
-    public String getOrganization()
-    {
-        return organization;
-    }
-
-    public void setOrganization(String organization)
-    {
-        this.organization = organization;
-    }
-
     public String getPath()
     {
         return path;
@@ -62,5 +52,15 @@ public class TransferEndpoint
     public void setPath(String path)
     {
         this.path = path;
+    }
+
+    public String getLocalDirectory()
+    {
+        return localDirectory;
+    }
+
+    public void setLocalDirectory(String localDirectory)
+    {
+        this.localDirectory = localDirectory;
     }
 }

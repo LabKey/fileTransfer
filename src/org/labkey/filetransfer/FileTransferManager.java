@@ -16,7 +16,6 @@
 
 package org.labkey.filetransfer;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
@@ -31,14 +30,16 @@ import org.labkey.api.exp.list.ListService;
 import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.query.FieldKey;
-import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.Path;
 import org.labkey.api.view.Portal;
 import org.labkey.api.view.ViewContext;
 import org.labkey.api.webdav.WebdavResolver;
 import org.labkey.api.webdav.WebdavResolverImpl;
+import org.labkey.filetransfer.config.FileTransferSettings;
 import org.labkey.filetransfer.model.TransferEndpoint;
-import org.labkey.filetransfer.provider.GlobusFileTransferProvider;
+import org.labkey.filetransfer.provider.FileTransferProvider;
+import org.labkey.filetransfer.globus.GlobusFileTransferProvider;
+import org.labkey.filetransfer.provider.Registry;
 
 import javax.servlet.http.HttpSession;
 import java.io.File;
@@ -61,12 +62,19 @@ public class FileTransferManager
     public static final String REFERENCE_FOLDER = "listFolder";
     public static final String REFERENCE_LIST = "listTable";
     public static final String REFERENCE_COLUMN = "fileNameColumn";
+    public static final String SOURCE_ENDPOINT_KEY = "sourceEndpointKey";
     public static final String SOURCE_ENDPOINT_DIRECTORY = "sourceEndpointDir";
 
     public static final String WEB_PART_ID_SESSION_KEY = "fileTransferWebPartId";
     public static final String RETURN_URL_SESSION_KEY = "fileTransferReturnUrl";
+    public static final String FILE_TRANSFER_PROVIDER = "fileTransferProviderKey";
     public static final String ENDPOINT_ID_SESSION_KEY = "destinationEndpointId";
     public static final String ENDPOINT_PATH_SESSION_KEY = "destinationEndpointPath";
+
+    public enum ErrorCode
+    {
+        noProvider
+    }
 
     private FileTransferManager()
     {
@@ -90,6 +98,22 @@ public class FileTransferManager
             return Collections.emptyMap();
         Portal.WebPart webPart =  Portal.getPart(context.getContainer(), webPartId);
         return webPart.getPropertyMap();
+    }
+
+    public FileTransferProvider getProvider(ViewContext context)
+    {
+        return Registry.get().getProvider(context.getContainer(), context.getUser(), (String) context.getSession().getAttribute(FileTransferManager.FILE_TRANSFER_PROVIDER));
+    }
+
+    public TransferEndpoint getSourceEndpoint(ViewContext context)
+    {
+        FileTransferProvider provider = getProvider(context);
+        if (provider == null)
+            return null;
+
+        FileTransferSettings settings = provider.getSettings();
+        Map<String, String> properties = getWebPartProperties(context);
+        return settings.getEndpoint(properties.get(SOURCE_ENDPOINT_KEY));
     }
 
     public List<String> getFileNames(ViewContext context)
@@ -138,12 +162,6 @@ public class FileTransferManager
     {
         PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
         return map.get(LOCAL_FILES_DIRECTORY);
-    }
-
-    public String getSourceEndpointDir(ViewContext context)
-    {
-        Map<String, String> properties = getWebPartProperties(context);
-        return properties.get(SOURCE_ENDPOINT_DIRECTORY);
     }
 
     public TransferEndpoint getDestinationEndpoint(ViewContext context) throws IOException, URISyntaxException
@@ -200,57 +218,17 @@ public class FileTransferManager
         return activeFiles;
     }
 
-    public String getServiceBaseUrl(Container container)
+
+    // TODO this will choose an identifier for an endpoint configured in admin console.
+    public String getSourceEndpointDir(ViewContext context)
     {
-        Module module = ModuleLoader.getInstance().getModule(FileTransferModule.NAME);
-        return module.getModuleProperties().get(FileTransferModule.FILE_TRANSFER_SERVICE_BASE_URL).getEffectiveValue(container);
+        Map<String, String> properties = getWebPartProperties(context);
+        return properties.get(SOURCE_ENDPOINT_DIRECTORY);
     }
 
     public String getSourceEndpointId(Container container)
     {
         Module module = ModuleLoader.getInstance().getModule(FileTransferModule.NAME);
         return module.getModuleProperties().get(FileTransferModule.FILE_TRANSFER_SOURCE_ENDPOINT_ID).getEffectiveValue(container);
-    }
-
-    public String getClientId(Container container)
-    {
-        Module module = ModuleLoader.getInstance().getModule(FileTransferModule.NAME);
-        return module.getModuleProperties().get(FileTransferModule.FILE_TRANSFER_CLIENT_ID).getEffectiveValue(container);
-    }
-
-    public String getClientSecret(Container container)
-    {
-        Module module = ModuleLoader.getInstance().getModule(FileTransferModule.NAME);
-        return module.getModuleProperties().get(FileTransferModule.FILE_TRANSFER_CLIENT_SECRET).getEffectiveValue(container);
-    }
-
-    public boolean isTransferConfigured(Container container)
-    {
-        String clientId = getClientId(container);
-        String clientSecret = getClientSecret(container);
-        String baseUrl = getServiceBaseUrl(container);
-        return clientId != null && clientSecret != null && baseUrl != null;
-    }
-
-    // TODO move to GlobusProvider class?
-    public String getGlobusTransferUiUrl(ViewContext context)
-    {
-        Container container = context.getContainer();
-        String baseUrl = getServiceBaseUrl(container);
-        String endpointId = getSourceEndpointId(container);
-        if (StringUtils.isNotBlank(baseUrl) && StringUtils.isNotBlank(endpointId))
-        {
-            // ex: https://www.globus.org/app/transfer?origin_id=<ENDPOINT_ID>&origin_path=<ENDPOINT_DIR>
-            String transferUrl = baseUrl.trim() + (!baseUrl.trim().endsWith("?") ? "?" : "")
-                    + "origin_id=" + PageFlowUtil.encode(endpointId.trim());
-
-            String endpointDir = getSourceEndpointDir(context);
-            if (StringUtils.isNotBlank(endpointDir))
-                transferUrl += "&origin_path=" + PageFlowUtil.encode(endpointDir.trim());
-
-            return transferUrl;
-        }
-
-        return null;
     }
 }

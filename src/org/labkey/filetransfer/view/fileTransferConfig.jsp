@@ -18,26 +18,24 @@
 %>
 
 <%@ page import="org.labkey.api.view.JspView" %>
-<%@ page import="org.labkey.api.view.Portal" %>
 <%@ page import="org.labkey.api.view.template.ClientDependencies" %>
-<%@ page import="java.util.Map" %>
+<%@ page import="org.labkey.filetransfer.view.FileTransferConfigForm" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
     @Override
     public void addClientDependencies(ClientDependencies dependencies)
     {
-        dependencies.add("sqv");
         dependencies.add("fileTransfer/fileTransferConfig.css");
     }
 %>
 <%
-    JspView<Portal.WebPart>  me = (JspView<Portal.WebPart>) JspView.currentView();
-    Portal.WebPart webPart = me.getModelBean();
-    Map<String, String> properties = webPart.getPropertyMap();
-    String title = properties.get("webpart.title") != null ? properties.get("webpart.title"): "File Transfer";
+    JspView<FileTransferConfigForm>  me = (JspView<FileTransferConfigForm>) JspView.currentView();
+    FileTransferConfigForm bean = me.getModelBean();
+
 %>
 <labkey:errors/>
-<div id="SQVPicker"></div>
+<h2><%= h(bean.getName()) %> File Transfer</h2>
+<div id="transferForm"></div>
 
 <script type="text/javascript">
 
@@ -49,122 +47,119 @@
                     + 'onmouseout="return hideHelpDivDelay();"><span class="labkey-help-pop-up">?</span></a>';
         };
 
-        var webPartTitle = Ext4.create("Ext.form.field.Text", {
-            name: "webpart.title",
-            labelWidth: 150,
-            width: 510,
-            padding: '10px 0 25px 0',
+
+        var localSettingsHeader = Ext4.create('Ext.form.Label', {
+            text: 'Local Server Settings',
+            style: 'font-weight: bold; font-size: large',
+            padding: '25px 0 0 0'
+        });
+
+        var transferRoot = Ext4.create("Ext.form.field.Text", {
+            name: "rootDir",
+            labelWidth: 200,
+            width: 535,
+            padding: '10px 0 0 25px',
             hidden: false,
             disabled: false,
-            fieldLabel: "Web Part Title",
-            initialValue : <%=text(qh(title))%>,
-            value: <%=text(qh(title))%>,
+            fieldLabel: "File Transfer Root Directory" + getFieldHoverText('File Transfer Root Directory', 'Specify the root directory on the '
+                    + 'local file system where the files to be transferred are available.'),
+            value: <%=text(qh(bean.getRootDir()))%>,
             allowBlank: false
         });
 
-        var containingFilesHeader = Ext4.create('Ext.form.Label', {
-            text: 'Files Directory Path',
-            style: 'font-weight: bold;'
+        var clientDataHeader = Ext4.create('Ext.form.Label', {
+            text: 'Client Registration Data',
+            style: 'font-weight: bold; font-size:large'
         });
 
-        var endpointField = Ext4.create('Ext.form.field.Text', {
-            name: "localFilesDirectory",
-            labelWidth: 150,
-            width: 510,
-            padding: '10px 0 25px 0',
+        var clientId = Ext4.create('Ext.form.field.Text', {
+            name: "clientId",
+            labelWidth: 200,
+            width: 535,
+            padding: '10px 0 0 25px',
             hidden: false,
             disabled: false,
-            fieldLabel: "Local Directory" + getFieldHoverText('Local Directory', 'Specify the directory on the '
-                            + 'local file system where the files to be transferred in this webpart are available.'),
-            initialValue : <%=q(properties.get("localFilesDirectory"))%>,
-            value: <%=q(properties.get("localFilesDirectory"))%>,
+            fieldLabel: "Client Id" + getFieldHoverText('Client Id', 'The id assigned by the file transfer provider to identify this application as its client.'),
+            initialValue : <%=q(bean.getClientId())%>,
+            value: <%=q(bean.getClientId())%>,
             allowBlank: false
         });
 
-        var referenceListHeader = Ext4.create('Ext.form.Label', {
-            text: "Reference List" ,
-            style: 'font-weight: bold;'
+        var clientSecret = Ext4.create('Ext.form.field.Text', {
+            name: "clientSecret",
+            labelWidth: 200,
+            width: 535,
+            padding: '10px 0 0 25px',
+            hidden: false,
+            disabled: false,
+            fieldLabel: "Client Secret" + getFieldHoverText('Client Secret', 'The secret associated with the Client Id used for authenticating requests to the file transfer provider.'),
+            initialValue : <%=q(bean.getClientSecret())%>,
+            value: <%=q(bean.getClientSecret())%>,
+            allowBlank: false
         });
 
-        var sqvModel = Ext4.create('LABKEY.sqv.Model', {});
-
-        var containerIdTextField = Ext4.create('Ext.form.field.Text', {
-            name: 'containerId',
-            hidden: true
+        var serviceUrlsHeader = Ext4.create('Ext.form.Label', {
+            text: 'Service URLs',
+            style: 'font-weight: bold; font-size: large',
+            padding: '25px 0 0 0'
         });
 
-        var containerComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeContainerComboConfig({
-            name: 'listFolder',
-            labelWidth: 150,
-            fieldLabel: 'Folder' + getFieldHoverText('Reference List Folder', 'Specify the location of the '
-                    + 'list that contains the metadata for the files referenced in this webpart.'),
-            editable: false,
-            width: 510,
-            padding: '10px 0 0 0',
-            allowBlank: false,
-            initialValue : <%=q(properties.get("listFolder"))%>,
-            value : <%=q(properties.get("listFolder"))%>,
-            listeners: {
-                select: function(combo) {
-                    containerIdTextField.setValue(combo.getValue());
-                    sqvModel.changeQueryStore(combo.getValue(), 'lists');
-                }
-            }
-        }));
-
-        var schemaComboField = Ext4.create('Ext.form.field.ComboBox', {
-            name: 'listSchema',
-            labelWidth: 150,
-            allowBlank: false,
-            fieldLabel: 'Schema',
-            value: 'lists',
-            disabled: true,
-            width: 300,
-            padding: '10px 0 0 0'
+        var authUrl = Ext4.create('Ext.form.field.Text', {
+            name: "authUrlPrefix",
+            labelWidth: 200,
+            width: 535,
+            padding: '10px 0 0 25px',
+            hidden: false,
+            disabled: false,
+            fieldLabel: "Authorization URL Prefix" + getFieldHoverText('Authorization URL Prefix', 'The prefix to the authorization service used for obtaining authorization codes and for requesting tokens. (e.g., https://auth.globus.org/v2/oauth2)'),
+            initialValue : <%=q(bean.getAuthUrlPrefix())%>,
+            value: <%=q(bean.getAuthUrlPrefix())%>,
+            allowBlank: false
         });
 
-        var queryComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeQueryComboConfig({
-            name: 'listTable',
-            forceSelection: true,
-            defaultSchema: 'lists',
-            fieldLabel: 'List'+ getFieldHoverText('Reference List', 'Specify the name of the '
-                    + 'list that contains the metadata for the files referenced in this webpart.'),
-            labelWidth: 150,
-            allowBlank: false,
-            initialValue : <%=q(properties.get("listTable"))%>,
-            value : <%=q(properties.get("listTable"))%>,
-            width: 300,
-            padding: '10px 0 0 0'
-        }));
-
-        var columnComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeColumnComboConfig({
-            name: 'fileNameColumn',
-            fieldLabel: 'File Name Field' + getFieldHoverText('Reference List Filed', 'Specify the name of the field in the reference list '
-                    + 'that contains the names of the files that could be transferred.'),
-            forceSelection: true,
-            labelWidth: 150,
-            allowBlank: false,
-            initialValue : <%=q(properties.get("fileNameColumn"))%>,
-            value : <%=q(properties.get("fileNameColumn"))%>,
-            margin: '0, 0, 20, 0',
-            width: 300,
-            padding: '10px 0 25px 0'
-        }));
-
-        var transferSourceHeader = Ext4.create('Ext.form.Label', {
-            text: 'Globus Genomics File Transfer Source',
-            style: 'font-weight: bold;'
+        var transferApiUrl =  Ext4.create('Ext.form.field.Text', {
+            name: "transferApiUrlPrefix",
+            labelWidth: 200,
+            width: 535,
+            padding: '10px 0 0 25px',
+            hidden: false,
+            disabled: false,
+            fieldLabel: "Transfer API URL Prefix" + getFieldHoverText('Transfer API URL Prefix', 'The prefix to the transfer API used for making transfer requests. (e.g, https://transfer.api.globusonline.org/v0.10)'),
+            initialValue : <%=q(bean.getTransferApiUrlPrefix())%>,
+            value: <%=q(bean.getTransferApiUrlPrefix())%>,
+            allowBlank: false
         });
 
-        var sourceEndpointDirField = Ext4.create('Ext.form.field.Text', {
-            name: "sourceEndpointDir",
-            labelWidth: 150,
-            width: 510,
-            padding: '10px 0 25px 0',
-            fieldLabel: "Endpoint Directory" + getFieldHoverText('Endpoint Directory', 'Specify the directory on the '
-                    + 'Globus Genomics endpoint that contains the files for this webpart.'),
-            initialValue : <%=q(properties.get("sourceEndpointDir"))%>,
-            value: <%=q(properties.get("sourceEndpointDir"))%>
+        var transferUiUrl =  Ext4.create('Ext.form.field.Text', {
+            name: "transferUiUrlPrefix",
+            labelWidth: 200,
+            width: 535,
+            padding: '10px 0 0 25px',
+            hidden: false,
+            disabled: false,
+            fieldLabel: "Transfer UI URL Prefix" + getFieldHoverText('Transfer UI URL Prefix', 'The prefix to the UI page where transfer requests can be made. (e.g., https://www.globus.org/app/transfer)'),
+            initialValue : <%=q(bean.getTransferUiUrlPrefix())%>,
+            value: <%=q(bean.getTransferUiUrlPrefix())%>,
+            allowBlank: true
+        });
+
+        var browseEndpointUrl =  Ext4.create('Ext.form.field.Text', {
+            name: "browseEndpointUrlPrefix",
+            labelWidth: 200,
+            width: 535,
+            padding: '10px 0 0 25px',
+            hidden: false,
+            disabled: false,
+            fieldLabel: "Browse Endpoint URL Prefix" + getFieldHoverText('Browse Endpoint URL Prefix', 'The prefix to the helper page where users can select endpoints (e.g., https://www.globus.org/app/browse-endpoint)'),
+            initialValue : <%=q(bean.getBrowseEndpointUrlPrefix())%>,
+            value: <%=q(bean.getBrowseEndpointUrlPrefix())%>,
+            allowBlank: false
+        });
+
+
+        var endpointsHeader = Ext4.create('Ext.form.Label', {
+            text: 'Endpoints',
+            style: 'font-weight: bold; font-size: large'
         });
 
         var cancelButton = Ext4.create('Ext.button.Button', {
@@ -189,9 +184,7 @@
                 if (form.isValid()) {
                     form.standardSubmit = true;
                     form.submit({
-                        // TODO put this back in so we can validate the values
-//                        url: LABKEY.ActionURL.buildURL('filetransfer', 'configuration.view'),
-                        url: <%=q(webPart.getCustomizePostURL(getViewContext()).getLocalURIString())%>,
+                        url: LABKEY.ActionURL.buildURL('filetransfer', 'configuration.view'),
                         method: 'POST',
                         scope: this
                     });
@@ -201,21 +194,21 @@
 
         Ext4.create('Ext.form.Panel', {
             border : false,
-            renderTo : 'SQVPicker',
+            renderTo : 'transferForm',
             cls: 'configFormPanel',
-            width: 520,
+            width: 575,
             items : [
-                webPartTitle,
-                containingFilesHeader,
-                endpointField,
-                referenceListHeader,
-                containerIdTextField,
-                containerComboField,
-                schemaComboField,
-                queryComboField,
-                columnComboField,
-                transferSourceHeader,
-                sourceEndpointDirField,
+                localSettingsHeader,
+                transferRoot,
+                clientDataHeader,
+                clientId,
+                clientSecret,
+                serviceUrlsHeader,
+                authUrl,
+                browseEndpointUrl,
+                transferApiUrl,
+                transferUiUrl,
+//                endpointsHeader,
                 { xtype: 'hidden', name: 'X-LABKEY-CSRF', value: LABKEY.CSRF }
             ],
             buttons: [

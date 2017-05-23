@@ -18,8 +18,10 @@ package org.labkey.filetransfer;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.StoredCredential;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.labkey.api.action.ApiAction;
+import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.Marshal;
 import org.labkey.api.action.Marshaller;
 import org.labkey.api.action.RedirectAction;
@@ -27,27 +29,36 @@ import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleResponse;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
+import org.labkey.api.data.ContainerManager;
+import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AbstractActionPermissionTest;
+import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.ReadPermission;
+import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.TestContext;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
+import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.RedirectException;
+import org.labkey.filetransfer.config.FileTransferSettings;
+import org.labkey.filetransfer.globus.GlobusAuthenticator;
+import org.labkey.filetransfer.globus.GlobusFileTransferProvider;
+import org.labkey.filetransfer.globus.TransferResult;
 import org.labkey.filetransfer.model.TransferEndpoint;
-import org.labkey.filetransfer.model.globus.TransferResult;
-import org.labkey.filetransfer.provider.GlobusFileTransferProvider;
-import org.labkey.filetransfer.security.GlobusAuthenticator;
+import org.labkey.filetransfer.provider.FileTransferProvider;
 import org.labkey.filetransfer.security.OAuth2Authenticator;
 import org.labkey.filetransfer.security.SecurePropertiesDataStore;
+import org.labkey.filetransfer.view.FileTransferConfigForm;
 import org.labkey.filetransfer.view.TransferView;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
+import java.io.File;
 import java.net.URISyntaxException;
 
 import static org.labkey.api.data.DataRegionSelection.DATA_REGION_SELECTION_KEY;
@@ -65,62 +76,76 @@ public class FileTransferController extends SpringActionController
         setActionResolver(_actionResolver);
     }
 
-    // TODO put this back, but use a different base class.  We still want to do the validation.
-//    @RequiresPermission(AdminPermission.class)
-//    public class ConfigurationAction extends FormViewAction<FileTransferConfigForm>
-//    {
-//        @Override
-//        public NavTree appendNavTrail(NavTree root)
-//        {
-//            root.addChild("File Transfer: Customize");
-//            return root;
-//        }
-//
-//        @Override
-//        public void validateCommand(FileTransferConfigForm form, Errors errors)
-//        {
-//            String endpointPath = form.getEndpointLocalPath();
-//            FileContentService service = ServiceRegistry.get().getService(FileContentService.class);
-//            if (service != null && !service.isValidProjectRoot(endpointPath))
-//            {
-//                errors.reject(ERROR_MSG, "File root '" + endpointPath + "' does not appear to be a valid directory accessible to the server at " + getViewContext().getRequest().getServerName() + ".");
-//            }
-//        }
-//
-//        @Override
-//        public ModelAndView getView(FileTransferConfigForm form, boolean reshow, BindException errors) throws Exception
-//        {
-//            Map<String, String> map = PropertyManager.getProperties(getContainer(), FileTransferManager.FILE_TRANSFER_CONFIG_PROPERTIES);
-//            form.setEndpointPath(map.get(FileTransferManager.ENDPOINT_DIRECTORY));
-//            form.setLookupContainer(map.get(FileTransferManager.REFERENCE_FOLDER));
-//            form.setQueryName(map.get(FileTransferManager.REFERENCE_LIST));
-//            form.setColumnName(map.get(FileTransferManager.REFERENCE_COLUMN));
-//            form.setSourceEndpointDir(map.get(FileTransferManager.SOURCE_ENDPOINT_DIRECTORY));
-//            return new JspView<>("/org/labkey/filetransfer/view/fileTransferConfig.jsp", form, errors);
-//        }
-//
-//        @Override
-//        public boolean handlePost(FileTransferConfigForm form, BindException errors) throws Exception
-//        {
-//            if (StringUtils.isEmpty(form.getEndpointLocalPath()))
-//                return false;
-//
-//            if (errors.hasErrors())
-//                return false;
-//
-//            FileTransferManager.get().saveFileTransferConfig(form, getContainer());
-//            return true;
-//        }
-//
-//        @Override
-//        public URLHelper getSuccessURL(FileTransferConfigForm form)
-//        {
-//            if (form.getReturnUrl() != null)
-//                return new ActionURL(form.getReturnUrl());
-//            else
-//                return PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
-//        }
-//    }
+    public static ActionURL getComplianceSettingsURL()
+    {
+        return new ActionURL(ConfigurationAction.class, ContainerManager.getRoot());
+    }
+
+    @RequiresPermission(AdminPermission.class)
+    public class ConfigurationAction extends FormViewAction<FileTransferConfigForm>
+    {
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            root.addChild("File Transfer Configuration");
+            return root;
+        }
+
+        @Override
+        public void validateCommand(FileTransferConfigForm form, Errors errors)
+        {
+            File file = new File(form.getRootDir());
+            if (form.getRootDir() != null)
+            {
+                if (!file.isDirectory())
+                    errors.rejectValue("rootDir", ERROR_MSG, "Directory '" + form.getRootDir() + "' does not exist");
+                else if (!file.canWrite())
+                    errors.rejectValue("rootDir", ERROR_MSG, "Directory '" + form.getRootDir() + "' is not writable");
+            }
+        }
+
+        @Override
+        public ModelAndView getView(FileTransferConfigForm form, boolean reshow, BindException errors) throws Exception
+        {
+            FileTransferSettings settings = new FileTransferSettings(GlobusFileTransferProvider.NAME);
+            form.setName(settings.getProviderName());
+            form.setClientSecret(settings.getClientSecret());
+            form.setClientId(settings.getClientId());
+            form.setRootDir(settings.getFileTransferRoot());
+            form.setEndpoints(settings.getEndpoints());
+            form.setAuthUrlPrefix(settings.getAuthUrlPrefix());
+            form.setBrowseEndpointUrlPrefix(settings.getBrowseEndpointUrlPrefix());
+            form.setTransferApiUrlPrefix(settings.getTransferApiUrlPrefix());
+            form.setTransferUiUrlPrefix(settings.getTransferUiUrlPrefix());
+
+            return new JspView<>("/org/labkey/filetransfer/view/fileTransferConfig.jsp", form, errors);
+        }
+
+        @Override
+        public boolean handlePost(FileTransferConfigForm form, BindException errors) throws Exception
+        {
+            if (!StringUtils.isEmpty(form.getRootDir()))
+            {
+                File file = new File(form.getRootDir());
+                if (!file.isDirectory() || !file.canWrite())
+                    return false;
+            }
+
+            FileTransferSettings settings = new FileTransferSettings("Globus");
+            settings.saveProperties(form);
+
+            return true;
+        }
+
+        @Override
+        public URLHelper getSuccessURL(FileTransferConfigForm form)
+        {
+            if (form.getReturnUrl() != null)
+                return new ActionURL(form.getReturnUrl());
+            else
+                return PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
+        }
+    }
 
 
     /**
@@ -142,6 +167,7 @@ public class FileTransferController extends SpringActionController
         {
             HttpSession session = getViewContext().getRequest().getSession();
             session.setAttribute(DATA_REGION_SELECTION_KEY, form.getDataRegionSelectionKey());
+            session.setAttribute(FileTransferManager.FILE_TRANSFER_PROVIDER, form.getFileTransferProviderKey());
             session.setAttribute("fileTransferContainer", getContainer().getId());
             session.setAttribute(FileTransferManager.WEB_PART_ID_SESSION_KEY, form.getWebPartId());
             session.setAttribute(FileTransferManager.RETURN_URL_SESSION_KEY, form.getReturnUrl());
@@ -154,6 +180,7 @@ public class FileTransferController extends SpringActionController
     {
         private String dataRegionSelectionKey;
         private Integer webPartId;
+        private String fileTransferProviderKey;
 
         public String getDataRegionSelectionKey()
         {
@@ -174,6 +201,16 @@ public class FileTransferController extends SpringActionController
         {
             this.webPartId = webPartId;
         }
+
+        public String getFileTransferProviderKey()
+        {
+            return fileTransferProviderKey;
+        }
+
+        public void setFileTransferProviderKey(String fileTransferProviderKey)
+        {
+            this.fileTransferProviderKey = fileTransferProviderKey;
+        }
     }
 
     /**
@@ -187,11 +224,14 @@ public class FileTransferController extends SpringActionController
     public class TokensAction extends RedirectAction<AuthForm>
     {
         Boolean authorized = true;
+        FileTransferManager.ErrorCode errorCode = null;
 
         @Override
         public URLHelper getSuccessURL(AuthForm authForm)
         {
             ActionURL url = new ActionURL(PrepareAction.class, getContainer()).addParameter("authorized", authorized);
+            if (errorCode != null)
+                url.addParameter("errorCode", errorCode.toString());
             String returnUrl = (String) getViewContext().getSession().getAttribute(FileTransferManager.RETURN_URL_SESSION_KEY);
             if (returnUrl != null)
                 try
@@ -221,17 +261,23 @@ public class FileTransferController extends SpringActionController
                 SecurePropertiesDataStore store = new SecurePropertiesDataStore(getUser(), getContainer());
 
                 // TODO check if this actually retrieves from the database or if there's more going on
-                StoredCredential credential = store.get(null);
+//                StoredCredential credential = store.get(null);
 //                if (credential.getAccessToken() == null || credential.getExpirationTimeMilliseconds() == null || credential.getExpirationTimeMilliseconds() <= 0)
                 {
-                    OAuth2Authenticator authenticator = new GlobusAuthenticator(getUser(), getContainer());
-
-                    Credential c = authenticator.getTokens(form.getCode());
-                    if (c.getAccessToken() != null)
+                    FileTransferProvider provider = FileTransferManager.get().getProvider(getViewContext());
+                    if (provider != null)
                     {
-                        store.set(store.getId(), new StoredCredential(c));
-                        return true;
+                        OAuth2Authenticator authenticator = provider.getAuthenticator(getContainer(), getUser());
+
+                        Credential c = authenticator.getTokens(form.getCode());
+                        if (c.getAccessToken() != null)
+                        {
+                            store.set(store.getId(), new StoredCredential(c));
+                            return true;
+                        }
                     }
+                    else
+                        errorCode = FileTransferManager.ErrorCode.noProvider;
                 }
             }
             return true;
@@ -275,9 +321,10 @@ public class FileTransferController extends SpringActionController
         @Override
         public Object execute(TransferRequestForm form, BindException errors) throws Exception
         {
-            GlobusFileTransferProvider provider = new GlobusFileTransferProvider(getContainer(), getUser());
-            TransferEndpoint source = new TransferEndpoint(FileTransferManager.get().getSourceEndpointId(getContainer()),
-                    FileTransferManager.get().getSourceEndpointDir(getViewContext()));
+            FileTransferProvider provider = FileTransferManager.get().getProvider(getViewContext());
+            if (provider == null)
+                return new SimpleResponse(false, "Count not find File Transfer Provider in this session.");
+            TransferEndpoint source = new TransferEndpoint(form.getSourceEndpoint(), form.getSourcePath());
             TransferEndpoint destination = new TransferEndpoint(form.getDestinationEndpoint(), form.getDestinationPath());
             try
             {
@@ -294,9 +341,31 @@ public class FileTransferController extends SpringActionController
 
     public static class TransferRequestForm
     {
+        private String sourceEndpoint;
+        private String sourcePath;
         private String destinationEndpoint;
         private String destinationPath;
         private String label;
+
+        public String getSourceEndpoint()
+        {
+            return sourceEndpoint;
+        }
+
+        public void setSourceEndpoint(String sourceEndpoint)
+        {
+            this.sourceEndpoint = sourceEndpoint;
+        }
+
+        public String getSourcePath()
+        {
+            return sourcePath;
+        }
+
+        public void setSourcePath(String sourcePath)
+        {
+            this.sourcePath = sourcePath;
+        }
 
         public String getDestinationEndpoint()
         {
@@ -341,20 +410,21 @@ public class FileTransferController extends SpringActionController
         @Override
         public ModelAndView getView(PrepareTransferForm form, BindException errors) throws Exception
         {
+            HttpSession session = getViewContext().getSession();
             // stash these values in the session so we can display them when the user returns to this page.
             if (form.getDestinationId() != null && form.getPath() != null)
             {
-                getViewContext().getSession().setAttribute(ENDPOINT_ID_SESSION_KEY, form.getDestinationId());
-                getViewContext().getSession().setAttribute(ENDPOINT_PATH_SESSION_KEY, form.getPath());
+                session.setAttribute(ENDPOINT_ID_SESSION_KEY, form.getDestinationId());
+                session.setAttribute(ENDPOINT_PATH_SESSION_KEY, form.getPath());
             }
             if (form.getReturnUrl() == null)
             {
-                String returnUrl = (String) getViewContext().getSession().getAttribute(FileTransferManager.RETURN_URL_SESSION_KEY);
+                String returnUrl = (String) session.getAttribute(FileTransferManager.RETURN_URL_SESSION_KEY);
                 if (returnUrl == null)
                     returnUrl = getContainer().getStartURL(getUser()).getLocalURIString();
                 form.setReturnUrl(returnUrl);
             }
-            return new TransferView(getUser(), getContainer(), form);
+            return new TransferView(form);
         }
     }
 
@@ -364,6 +434,7 @@ public class FileTransferController extends SpringActionController
         private String endpoint_id; // parameter names dictated by https://docs.globus.org/api/helper-pages/browse-endpoint/
         private String path;
         private String label;
+        private FileTransferManager.ErrorCode errorCode;
 
         public Boolean getAuthorized()
         {
@@ -415,6 +486,16 @@ public class FileTransferController extends SpringActionController
         {
             this.label = label;
         }
+
+        public FileTransferManager.ErrorCode getErrorCode()
+        {
+            return errorCode;
+        }
+
+        public void setErrorCode(FileTransferManager.ErrorCode errorCode)
+        {
+            this.errorCode = errorCode;
+        }
     }
 
 
@@ -434,10 +515,10 @@ public class FileTransferController extends SpringActionController
                 controller.new TokensAction()
             );
 
-//            // @RequiresPermission(AdminOperationsPermission.class)
-//            assertForAdminOperationsPermission(user,
-//                controller.new ConfigurationAction()
-//            );
+            // @RequiresPermission(AdminOperationsPermission.class)
+            assertForAdminOperationsPermission(user,
+                controller.new ConfigurationAction()
+            );
         }
     }
 }

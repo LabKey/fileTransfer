@@ -26,7 +26,7 @@ import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
 import org.labkey.api.view.ActionURL;
 import org.labkey.filetransfer.FileTransferController;
-import org.labkey.filetransfer.FileTransferManager;
+import org.labkey.filetransfer.config.FileTransferSettings;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -50,11 +50,13 @@ public abstract class OAuth2Authenticator
     private Credential credential;
     private User user;
     private Container container;
+    protected FileTransferSettings settings;
 
-    public OAuth2Authenticator(User user, Container container)
+    public OAuth2Authenticator(User user, Container container, String name)
     {
         this.user = user;
         this.container = container;
+        settings = new FileTransferSettings(name);
     }
 
     protected abstract String getAuthorizationUrlPrefix();
@@ -68,7 +70,7 @@ public abstract class OAuth2Authenticator
     public String getAuthorizationUrl()
     {
         // https://auth.globus.org/v2/oauth2/authorize&client_id=<client_id>&redirect_uri=http://<hostname>/<project>/fileTransfer-auth.view?&response_type=code&scope=urn:globus:auth:scope:transfer.api.globus.org:all
-        AuthorizationRequestUrl url = new AuthorizationRequestUrl(getAuthorizationUrlPrefix(), FileTransferManager.get().getClientId(container), Arrays.asList("code"));
+        AuthorizationRequestUrl url = new AuthorizationRequestUrl(getAuthorizationUrlPrefix(), settings.getClientId(), Arrays.asList("code"));
         url.setScopes(getScopes());
         url.setRedirectUri(getRedirectUri());
         url.setState("XYZ"); // TODO
@@ -108,20 +110,18 @@ public abstract class OAuth2Authenticator
 
     public String getClientAuthHeader() throws UnsupportedEncodingException
     {
-        String clientData = String.format("%s:%s", FileTransferManager.get().getClientId(container), FileTransferManager.get().getClientSecret(container));
+        String clientData = String.format("%s:%s", settings.getClientId(), settings.getClientSecret());
 
         return new String(Base64.encodeBase64(clientData.getBytes("UTF-8")), "UTF-8");
     }
 
     public BasicAuthentication getClientAuthentication()
     {
-        return new BasicAuthentication(FileTransferManager.get().getClientId(container), FileTransferManager.get().getClientSecret(container));
+        return new BasicAuthentication(settings.getClientId(), settings.getClientSecret());
     }
 
     public Credential getTokens(String authCode) throws Exception
     {
-        NetHttpTransport transport = new NetHttpTransport();
-
         AuthorizationCodeTokenRequest tokenRequest = new AuthorizationCodeTokenRequest(new NetHttpTransport(), new JacksonFactory(), new GenericUrl(getTokensUrlPrefix()), authCode);
         tokenRequest.setRedirectUri(getRedirectUri());
         tokenRequest.setClientAuthentication(getClientAuthentication());

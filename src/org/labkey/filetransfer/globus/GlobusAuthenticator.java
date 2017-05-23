@@ -1,7 +1,8 @@
-package org.labkey.filetransfer.security;
+package org.labkey.filetransfer.globus;
 
 import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
+import org.labkey.filetransfer.security.OAuth2Authenticator;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,22 +14,21 @@ import java.util.Map;
  */
 public class GlobusAuthenticator extends OAuth2Authenticator
 {
-    private static final String AUTH_URL_PREFIX = "https://auth.globus.org/v2/oauth2";
     private static final String TRANSFER_SCOPE = "urn:globus:auth:scope:transfer.api.globus.org:all";
 
     public GlobusAuthenticator(User user, Container container)
     {
-        super(user, container);
+        super(user, container, GlobusFileTransferProvider.NAME);
     }
 
     protected String getAuthorizationUrlPrefix()
     {
-        return AUTH_URL_PREFIX + "/authorize";
+        return settings.getAuthUrlPrefix() + "/authorize";
     }
 
     protected String getTokensUrlPrefix()
     {
-        return AUTH_URL_PREFIX + "/token";
+        return settings.getAuthUrlPrefix() + "/token";
     }
 
     protected List<String> getScopes()

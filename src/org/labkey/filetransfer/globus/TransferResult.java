@@ -1,4 +1,4 @@
-package org.labkey.filetransfer.model.globus;
+package org.labkey.filetransfer.globus;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

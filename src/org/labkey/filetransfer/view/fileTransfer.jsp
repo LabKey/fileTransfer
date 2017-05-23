@@ -24,6 +24,7 @@
 <%@ page import="org.labkey.api.view.template.ClientDependencies" %>
 <%@ page import="org.labkey.filetransfer.FileTransferController" %>
 <%@ page import="org.labkey.filetransfer.model.TransferBean" %>
+<%@ page import="org.labkey.filetransfer.FileTransferManager" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
     @Override
@@ -37,8 +38,13 @@
     TransferBean bean = me.getModelBean();
     String returnUrl = bean.getReturnUrl();
     Boolean transferEnabled = bean.getAuthorized() && bean.getDestination() != null && bean.getTransferResultMsg() == null;
-    String notifyMsg = !bean.getAuthorized() ? "User has not authorized LabKey Server for file transfer using " + bean.getProviderName() + "." :
-                        bean.getFileNames().isEmpty() ? "No files selected." : "";
+    String notifyMsg = "";
+    if (bean.getErrorCode() == FileTransferManager.ErrorCode.noProvider)
+        notifyMsg = "No file transfer provider available in the session.";
+    else if (!bean.getAuthorized())
+        notifyMsg = "User has not authorized LabKey Server for file transfer using " + bean.getProviderName() + ".";
+    else if (bean.getFileNames().isEmpty())
+        notifyMsg = "No files selected.";
     if (!notifyMsg.isEmpty())
         notifyMsg += "  No transfer request will be made.";
     String cancelText = "Back";
@@ -57,6 +63,8 @@
             url: <%=q(transferUrl.getLocalURIString())%>,
             method: 'POST',
             jsonData: {
+                sourceEndpoint: <%= q(bean.getSource().getId())%>,
+                sourcePath: <%= q(bean.getSource().getPath())%>,
                 destinationEndpoint: <%= q(bean.getDestination().getId()) %>,
                 destinationPath: <%= q(bean.getDestination().getPath()) %>,
                 label: <%= q(bean.getLabel()) %>

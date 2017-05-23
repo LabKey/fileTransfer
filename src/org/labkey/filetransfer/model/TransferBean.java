@@ -1,5 +1,7 @@
 package org.labkey.filetransfer.model;
 
+import org.labkey.filetransfer.FileTransferManager;
+
 import java.util.List;
 
 /**
@@ -16,6 +18,7 @@ public class TransferBean
     private String transferResultMsg;
     private String browseEndpointsUrl;
     private String label;
+    private FileTransferManager.ErrorCode errorCode;
 
     public Boolean getAuthorized()
     {
@@ -107,4 +110,13 @@ public class TransferBean
         this.label = label;
     }
 
+    public FileTransferManager.ErrorCode getErrorCode()
+    {
+        return errorCode;
+    }
+
+    public void setErrorCode(FileTransferManager.ErrorCode errorCode)
+    {
+        this.errorCode = errorCode;
+    }
 }

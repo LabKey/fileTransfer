@@ -54,7 +54,7 @@ public class FileTransferMetadataWebPartFactory extends BaseWebPartFactory
 
     public HttpView getEditView(Portal.WebPart webPart, ViewContext context)
     {
-        return new FileTransferConfigView(webPart);
+        return new FileTransferWebPartConfigView(webPart);
     }
 
     public static String getDataRegionName(ListDefinition listDef)

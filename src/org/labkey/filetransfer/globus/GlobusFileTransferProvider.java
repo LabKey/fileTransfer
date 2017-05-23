@@ -1,7 +1,7 @@
-package org.labkey.filetransfer.provider;
+package org.labkey.filetransfer.globus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.auth.oauth2.StoredCredential;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ResponseHandler;
@@ -13,39 +13,43 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
+import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.view.ActionURL;
+import org.labkey.api.view.ViewContext;
 import org.labkey.filetransfer.FileTransferController;
+import org.labkey.filetransfer.FileTransferManager;
 import org.labkey.filetransfer.model.TransferEndpoint;
-import org.labkey.filetransfer.model.globus.SubmissionId;
-import org.labkey.filetransfer.model.globus.TransferResult;
-import org.labkey.filetransfer.security.SecurePropertiesDataStore;
+import org.labkey.filetransfer.provider.FileTransferProvider;
+import org.labkey.filetransfer.security.OAuth2Authenticator;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by susanh on 5/15/17.
  */
-public class GlobusFileTransferProvider
+public class GlobusFileTransferProvider extends FileTransferProvider
 {
-    private static final Logger logger = Logger.getLogger(GlobusFileTransferProvider.class);
-    private StoredCredential credential;
-    private static final String urlPrefix = "https://transfer.api.globusonline.org/v0.10";
+    public static final String NAME = "Globus";
 
     public GlobusFileTransferProvider(Container container, User user) throws IOException
     {
-        SecurePropertiesDataStore store = new SecurePropertiesDataStore(user, container);
-        // TODO check if this actually retrieves from the database or if there's more going on
-        credential = store.get(null);
+       super(container, user, NAME);
+    }
+
+    private String getUrlPrefix()
+    {
+        return settings.getTransferApiUrlPrefix();
     }
 
     public TransferResult transfer(@NotNull TransferEndpoint source, @NotNull TransferEndpoint destination, @NotNull List<String> fileNames, @Nullable String label) throws Exception
@@ -53,7 +57,7 @@ public class GlobusFileTransferProvider
         if (fileNames.isEmpty())
             return null;
 
-        URI submissionIdUri = new URI(urlPrefix + "/submission_id");
+        URI submissionIdUri = new URI(settings.getTransferApiUrlPrefix() + "/submission_id");
         SubmissionId submissionId = (SubmissionId) makeApiGetRequest(submissionIdUri, SubmissionId.class);
 
         if (submissionId == null || submissionId.getValue() == null)
@@ -78,7 +82,7 @@ public class GlobusFileTransferProvider
         }
         transferObject.put("DATA", items);
 
-        URI transferUri = new URI(urlPrefix + "/transfer");
+        URI transferUri = new URI(getUrlPrefix() + "/transfer");
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault())
         {
@@ -99,17 +103,33 @@ public class GlobusFileTransferProvider
         }
     }
 
-    public static String getBrowseEndpointUrl(Container container)
+    public String getBrowseEndpointUrl(Container container)
     {
         ActionURL actionUrl = new ActionURL(FileTransferController.PrepareAction.class, container);
-        return "https://www.globus.org/app/browse-endpoint?method=POST&folderlimit=0&filelimit=0&action=" + actionUrl.getURIString();
+        return settings.getBrowseEndpointUrlPrefix() + "?method=POST&folderlimit=0&filelimit=0&action=" + actionUrl.getURIString();
     }
 
     @Nullable
     public TransferEndpoint getEndpoint(String endpointId) throws IOException, URISyntaxException
     {
-        URI uri = new URI(urlPrefix + "/endpoint/" + endpointId + "?fields=id,display_name,organization");
+        URI uri = new URI(getUrlPrefix() + "/endpoint/" + endpointId + "?fields=id,display_name,organization");
         return (TransferEndpoint) makeApiGetRequest(uri, TransferEndpoint.class);
+    }
+
+    public List<TransferEndpoint> getKnownEndpoints()
+    {
+        return Collections.emptyList();
+    }
+
+    public boolean isTransferApiConfigured()
+    {
+        return settings.getClientId() != null &&
+                settings.getClientSecret() != null &&
+                settings.getAuthUrlPrefix() != null &&
+                settings.getTransferApiUrlPrefix() != null &&
+                settings.getBrowseEndpointUrlPrefix() != null
+//              &&  !settings.getEndpoints().isEmpty()
+ ;
     }
 
     private Object makeApiGetRequest(URI uri, Class clazz) throws IOException
@@ -133,5 +153,48 @@ public class GlobusFileTransferProvider
             }
         }
         return null;
+    }
+
+    @Override
+    public String getTransferUiUrl(Map<String, String> properties, ViewContext context)
+    {
+        String baseUrl = settings.getTransferUiUrlPrefix();
+        // TODO
+//        TransferEndpoint sourceEndpoint = settings.getEndpoint(properties.get("sourceEndpointKey"));
+//        if (StringUtils.isNotBlank(baseUrl) && sourceEndpoint != null)
+//        {
+//            // ex: https://www.globus.org/app/transfer?origin_id=<ENDPOINT_ID>&origin_path=<ENDPOINT_DIR>
+//            String transferUrl = baseUrl.trim() + (!baseUrl.trim().endsWith("?") ? "?" : "")
+//                    + "origin_id=" + PageFlowUtil.encode(sourceEndpoint.getId());
+//
+//            String endpointDir = sourceEndpoint.getPath();
+//            if (StringUtils.isNotBlank(endpointDir))
+//                transferUrl += "&origin_path=" + PageFlowUtil.encode(endpointDir.trim());
+//
+//            return transferUrl;
+//        }
+
+        String endpointId = FileTransferManager.get().getSourceEndpointId(context.getContainer());
+        if (StringUtils.isNotBlank(baseUrl) && StringUtils.isNotBlank(endpointId))
+        {
+            // ex: https://www.globus.org/app/transfer?origin_id=<ENDPOINT_ID>&origin_path=<ENDPOINT_DIR>
+            String transferUrl = baseUrl.trim() + (!baseUrl.trim().endsWith("?") ? "?" : "")
+                    + "origin_id=" + PageFlowUtil.encode(endpointId.trim());
+
+            String endpointDir = FileTransferManager.get().getSourceEndpointDir(context);
+
+            if (StringUtils.isNotBlank(endpointDir))
+                transferUrl += "&origin_path=" + PageFlowUtil.encode(endpointDir.trim());
+
+            return transferUrl;
+        }
+
+        return null;
+    }
+
+    @Override
+    public OAuth2Authenticator getAuthenticator(Container container, User user)
+    {
+        return new GlobusAuthenticator(user, container);
     }
 }

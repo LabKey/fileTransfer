@@ -1,11 +1,11 @@
-package org.labkey.filetransfer;
+package org.labkey.filetransfer.view;
 
 import org.labkey.api.action.ReturnUrlForm;
 
 /**
  * Created by xingyang on 2/8/17.
  */
-public class FileTransferConfigForm extends ReturnUrlForm
+public class FileTransferWebPartConfigForm extends ReturnUrlForm
 {
     private String endpointPath;
     private String lookupContainer;

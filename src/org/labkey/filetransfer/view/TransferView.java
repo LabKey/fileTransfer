@@ -1,14 +1,12 @@
 package org.labkey.filetransfer.view;
 
-import org.labkey.api.data.Container;
-import org.labkey.api.security.User;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.ViewContext;
 import org.labkey.filetransfer.FileTransferController;
 import org.labkey.filetransfer.FileTransferManager;
 import org.labkey.filetransfer.model.TransferBean;
 import org.labkey.filetransfer.model.TransferEndpoint;
-import org.labkey.filetransfer.provider.GlobusFileTransferProvider;
+import org.labkey.filetransfer.provider.FileTransferProvider;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -19,17 +17,19 @@ import java.net.URISyntaxException;
 public class TransferView extends JspView<TransferBean>
 {
 
-    public TransferView(User user, Container container, FileTransferController.PrepareTransferForm form) throws IOException, URISyntaxException
+    public TransferView(FileTransferController.PrepareTransferForm form) throws IOException, URISyntaxException
     {
         super ("/org/labkey/filetransfer/view/fileTransfer.jsp");
 
         ViewContext context = getViewContext();
-        GlobusFileTransferProvider provider = new GlobusFileTransferProvider(container, user);
+        FileTransferManager manager = FileTransferManager.get();
+
+        FileTransferProvider provider = manager.getProvider(context);
 
         TransferBean bean = new TransferBean();
 
-        TransferEndpoint sourceEndpoint;
-        sourceEndpoint = provider.getEndpoint(FileTransferManager.get().getSourceEndpointId(context.getContainer()));
+        TransferEndpoint sourceEndpoint = FileTransferManager.get().getSourceEndpoint(context);
+//        sourceEndpoint = provider.getEndpoint(FileTransferManager.get().getSourceEndpointId(context.getContainer()));
         if (sourceEndpoint == null)
         {
             bean.setSource(new TransferEndpoint(FileTransferManager.get().getSourceEndpointId(context.getContainer()),
@@ -41,8 +41,8 @@ public class TransferView extends JspView<TransferBean>
             bean.setSource(sourceEndpoint);
         }
 
-        bean.setBrowseEndpointsUrl(GlobusFileTransferProvider.getBrowseEndpointUrl(context.getContainer()));
-        bean.setProviderName("Globus");
+        bean.setBrowseEndpointsUrl(provider.getBrowseEndpointUrl(context.getContainer()));
+        bean.setProviderName(provider.getName());
         bean.setAuthorized(form.getAuthorized());
         bean.setLabel(form.getLabel());
         bean.setReturnUrl(form.getReturnUrl());
