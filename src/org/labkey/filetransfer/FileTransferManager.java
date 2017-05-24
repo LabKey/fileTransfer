@@ -30,7 +30,6 @@ import org.labkey.api.query.FieldKey;
 import org.labkey.api.view.Portal;
 import org.labkey.api.view.ViewContext;
 import org.labkey.filetransfer.config.FileTransferSettings;
-import org.labkey.filetransfer.globus.GlobusFileTransferProvider;
 import org.labkey.filetransfer.model.TransferEndpoint;
 import org.labkey.filetransfer.provider.FileTransferProvider;
 import org.labkey.filetransfer.provider.Registry;
@@ -169,7 +168,7 @@ public class FileTransferManager
         TransferEndpoint endpoint = null;
         if (id != null && path != null)
         {
-            GlobusFileTransferProvider provider = new GlobusFileTransferProvider(context.getContainer(), context.getUser());
+            FileTransferProvider provider = getProvider(context);
             endpoint = provider.getEndpoint(id);
 
             if (endpoint != null)
