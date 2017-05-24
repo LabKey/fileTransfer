@@ -61,7 +61,6 @@ public abstract class OAuth2Authenticator
         AuthorizationRequestUrl url = new AuthorizationRequestUrl(getAuthorizationUrlPrefix(), settings.getClientId(), Arrays.asList("code"));
         url.setScopes(getScopes());
         url.setRedirectUri(getRedirectUri());
-        url.setState("XYZ"); // TODO
         for (Map.Entry<String, String> entry : getAdditionalAuthParams().entrySet())
         {
             url.set(entry.getKey(), entry.getValue());

@@ -31,10 +31,11 @@ import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.portal.ProjectUrls;
+import org.labkey.api.security.CSRF;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AbstractActionPermissionTest;
-import org.labkey.api.security.permissions.AdminPermission;
+import org.labkey.api.security.permissions.AdminOperationsPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.TestContext;
@@ -44,7 +45,6 @@ import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.RedirectException;
 import org.labkey.filetransfer.config.FileTransferSettings;
-import org.labkey.filetransfer.globus.GlobusAuthenticator;
 import org.labkey.filetransfer.globus.GlobusFileTransferProvider;
 import org.labkey.filetransfer.globus.TransferResult;
 import org.labkey.filetransfer.model.TransferEndpoint;
@@ -81,7 +81,8 @@ public class FileTransferController extends SpringActionController
         return new ActionURL(ConfigurationAction.class, ContainerManager.getRoot());
     }
 
-    @RequiresPermission(AdminPermission.class)
+    @CSRF
+    @RequiresPermission(AdminOperationsPermission.class)
     public class ConfigurationAction extends FormViewAction<FileTransferConfigForm>
     {
         @Override
@@ -157,6 +158,7 @@ public class FileTransferController extends SpringActionController
      * authorization UI.  This redirect contains a parameter indicating the action to return to when authentication is
      * complete.
      */
+    @CSRF
     @RequiresPermission(ReadPermission.class)
     public class AuthAction extends SimpleViewAction<TransferSelectionForm>
     {
@@ -171,12 +173,19 @@ public class FileTransferController extends SpringActionController
         {
             HttpSession session = getViewContext().getRequest().getSession();
             session.setAttribute(DATA_REGION_SELECTION_KEY, form.getDataRegionSelectionKey());
-            session.setAttribute("fileTransferContainer", getContainer().getId());
             session.setAttribute(FileTransferManager.WEB_PART_ID_SESSION_KEY, form.getWebPartId());
             session.setAttribute(FileTransferManager.RETURN_URL_SESSION_KEY, form.getReturnUrl());
-            // TODO get the authenticator from the registry by using a key from the form
-            OAuth2Authenticator authenticator = new GlobusAuthenticator(getUser(), getContainer());
-            throw new RedirectException(authenticator.getAuthorizationUrl());
+            FileTransferProvider provider = FileTransferManager.get().getProvider(getViewContext());
+            if (provider != null)
+            {
+                OAuth2Authenticator authenticator = provider.getAuthenticator(getContainer(), getUser());
+                throw new RedirectException(authenticator.getAuthorizationUrl());
+            }
+            else
+            {
+                errors.reject("No File Transfer Provider defined for this web part");
+                return null;
+            }
         }
     }
 
@@ -213,6 +222,7 @@ public class FileTransferController extends SpringActionController
      * and display items for next steps, which are either to return to the page where the initial selection of files was
      * made, choose a destination endpoint, or initiate a transfer of the selected files.
      */
+    @CSRF
     @RequiresPermission(ReadPermission.class)
     public class TokensAction extends RedirectAction<AuthForm>
     {
@@ -308,6 +318,7 @@ public class FileTransferController extends SpringActionController
         }
     }
 
+    @CSRF
     @RequiresPermission(ReadPermission.class)
     public class TransferAction extends ApiAction<TransferRequestForm>
     {
@@ -505,7 +516,9 @@ public class FileTransferController extends SpringActionController
             // @RequiresPermission(ReadPermission.class)
             assertForReadPermission(user,
                 controller.new PrepareAction(),
-                controller.new TokensAction()
+                controller.new TokensAction(),
+                controller.new TransferAction(),
+                controller.new AuthAction()
             );
 
             // @RequiresPermission(AdminOperationsPermission.class)
