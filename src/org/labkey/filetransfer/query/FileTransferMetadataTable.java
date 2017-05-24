@@ -11,12 +11,12 @@ import org.labkey.api.query.UserSchema;
 import org.labkey.api.view.ViewContext;
 import org.labkey.filetransfer.FileTransferManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 import java.util.Map;
 
-import static org.labkey.filetransfer.FileTransferManager.LOCAL_FILES_DIRECTORY;
 import static org.labkey.filetransfer.FileTransferManager.REFERENCE_COLUMN;
 
 /**
@@ -37,9 +37,10 @@ public class FileTransferMetadataTable extends FilteredTable<UserSchema>
         getColumn("Created").setHidden(true);
         getColumn("Container").setHidden(true);
 
-        if (properties.get(LOCAL_FILES_DIRECTORY) != null)
+        File filesDir = FileTransferManager.get().getLocalFilesDirectory(context);
+        if (filesDir != null && filesDir.exists() && filesDir.canRead())
         {
-            List<String> activeFiles = FileTransferManager.get().getActiveFiles(properties.get(LOCAL_FILES_DIRECTORY));
+            List<String> activeFiles = FileTransferManager.get().getActiveFiles(filesDir);
             ColumnInfo fromColumn = getRealTable().getColumn(properties.get(REFERENCE_COLUMN));
             if (fromColumn == null)
                 return;

@@ -20,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.DataRegionSelection;
-import org.labkey.api.data.PropertyManager;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
 import org.labkey.api.data.TableInfo;
@@ -155,12 +154,6 @@ public class FileTransferManager
         return null;
     }
 
-    public String getEndpointLocalPath(Container container)
-    {
-        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
-        return map.get(LOCAL_FILES_DIRECTORY);
-    }
-
     public TransferEndpoint getDestinationEndpoint(ViewContext context) throws IOException, URISyntaxException
     {
         String id = (String) context.getSession().getAttribute(ENDPOINT_ID_SESSION_KEY);
@@ -180,13 +173,12 @@ public class FileTransferManager
         return endpoint;
     }
 
-    public List<String> getActiveFiles(String localDir)
+    public List<String> getActiveFiles(File localDir)
     {
         List<String> activeFiles = new ArrayList<>();
         if (localDir != null)
         {
-            File directory = new File(localDir);
-            File[] directoryFiles = directory.listFiles();
+            File[] directoryFiles = localDir.listFiles();
             if (directoryFiles != null)
             {
                 for (File file : directoryFiles)
@@ -196,5 +188,14 @@ public class FileTransferManager
             }
         }
         return activeFiles;
+    }
+
+    public File getLocalFilesDirectory(ViewContext context)
+    {
+        FileTransferProvider provider = getProvider(context);
+        Map<String, String> properties = getWebPartProperties(context);
+        if (provider == null || properties.get(LOCAL_FILES_DIRECTORY) == null || provider.getSettings() == null || provider.getSettings().getFileTransferRoot() == null)
+            return null;
+        return new File(provider.getSettings().getFileTransferRoot(), properties.get(LOCAL_FILES_DIRECTORY));
     }
 }

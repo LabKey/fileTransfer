@@ -55,10 +55,6 @@
                     + 'onmouseout="return hideHelpDivDelay();"><span class="labkey-help-pop-up">?</span></a>';
         };
 
-        var isValidPath = function(path) {
-            return path[0] 
-        };
-
         var webPartTitle = Ext4.create("Ext.form.field.Text", {
             name: "webpart.title",
             labelWidth: 150,
@@ -72,26 +68,22 @@
             allowBlank: false
         });
 
-        var containingFilesHeader = Ext4.create('Ext.form.Label', {
-            text: 'Files Directory Path',
-            style: 'font-weight: bold;'
+        var localFilesDirectoryHeader = Ext4.create('Ext.form.Label', {
+            html: '<span style="font-weight: bold">Files Directory</span></br>' +
+            'Specify the directory on the local file system relative to <%=h(provider.getSettings().getFileTransferRoot())%> where the files to be transferred in this webpart are available'
         });
 
-        var endpointField = Ext4.create('Ext.form.field.Text', {
+        var localFilesDirectoryField = Ext4.create('Ext.form.field.Text', {
             name: "localFilesDirectory",
             labelWidth: 150,
             width: 510,
             padding: '10px 0 25px 0',
             hidden: false,
             disabled: false,
-            <%--fieldLabel: "Local Directory" + getFieldHoverText('Local Directory', 'Specify the directory on the '--%>
-                    <%--+ 'local file system relative to <%=h(provider.getSettings().getFileTransferRoot())%> where the files to be transferred in this webpart are available.'),--%>
-            initialValue : <%=q(initialDir)%>,
-            value: <%=q(initialDir)%>,
             fieldLabel: "Local Directory" + getFieldHoverText('Local Directory', 'Specify the directory on the '
-                            + 'local file system where the files to be transferred in this webpart are available.'),
-            <%--initialValue : <%=q(properties.get("localFilesDirectory"))%>,--%>
-            <%--value: <%=q(properties.get("localFilesDirectory"))%>,--%>
+                    + 'local file system relative to <%=h(provider.getSettings().getFileTransferRoot())%> where the files to be transferred in this webpart are available.'),
+            initialValue : <%=q(properties.get("localFilesDirectory"))%>,
+            value: <%=q(properties.get("localFilesDirectory"))%>,
             allowBlank: false
         });
 
@@ -172,7 +164,7 @@
         }));
 
         var transferSourceHeader = Ext4.create('Ext.form.Label', {
-            text: 'Globus File Transfer Source',
+            text: '<%=h(provider.getName())%> File Transfer Source',
             style: 'font-weight: bold;'
         });
 
@@ -182,7 +174,7 @@
             width: 510,
             padding: '10px 0 25px 0',
             fieldLabel: "Endpoint Directory" + getFieldHoverText('Endpoint Directory', 'Specify the directory on the '
-                    + 'Globus endpoint that contains the files for this webpart.'),
+                    + 'transfer service provider endpoint that contains the files for this webpart.'),
             initialValue : <%=q(properties.get("sourceEndpointDir"))%>,
             value: <%=q(properties.get("sourceEndpointDir"))%>
         });
@@ -224,8 +216,8 @@
             width: 520,
             items : [
                 webPartTitle,
-                containingFilesHeader,
-                endpointField,
+                localFilesDirectoryHeader,
+                localFilesDirectoryField,
                 referenceListHeader,
                 providerNameField,
                 containerIdTextField,
