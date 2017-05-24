@@ -24,6 +24,8 @@ import org.springframework.validation.Errors;
 
 import java.util.Map;
 
+import static org.labkey.filetransfer.FileTransferManager.FILE_TRANSFER_PROVIDER;
+
 /**
  * Created by susanh on 5/9/17.
  */
@@ -41,9 +43,11 @@ public class FileTransferMetadataQueryView extends QueryView
         this.properties = webPart.getPropertyMap();
         if (this.properties != null)
         {
-            listDef = FileTransferManager.get().getMetadataList(webPart.getPropertyMap());
-            provider = Registry.get().getProvider(getContainer(), getUser(), this.properties.get("fileTransferProvider"));
+            listDef = FileTransferManager.get().getMetadataList(this.properties);
+            provider = Registry.get().getProvider(getContainer(), getUser(), this.properties.get(FILE_TRANSFER_PROVIDER));
         }
+        if (!FileTransferManager.get().isValidTransferDirectory(this.properties, getViewContext()))
+            listDef = null;
     }
 
     @Override

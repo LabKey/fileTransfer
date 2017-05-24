@@ -94,13 +94,13 @@ public class FileTransferController extends SpringActionController
         @Override
         public void validateCommand(FileTransferConfigForm form, Errors errors)
         {
-            File file = new File(form.getRootDir());
-            if (form.getRootDir() != null)
+            File file = new File(form.getSourceEndpointLocalDir());
+            if (form.getSourceEndpointLocalDir() != null)
             {
                 if (!file.isDirectory())
-                    errors.rejectValue("rootDir", ERROR_MSG, "Directory '" + form.getRootDir() + "' does not exist");
+                    errors.rejectValue("rootDir", ERROR_MSG, "Directory '" + form.getSourceEndpointLocalDir() + "' does not exist");
                 else if (!file.canWrite())
-                    errors.rejectValue("rootDir", ERROR_MSG, "Directory '" + form.getRootDir() + "' is not writable");
+                    errors.rejectValue("rootDir", ERROR_MSG, "Directory '" + form.getSourceEndpointLocalDir() + "' is not writable");
             }
         }
 
@@ -111,10 +111,12 @@ public class FileTransferController extends SpringActionController
             form.setName(settings.getProviderName());
             form.setClientSecret(settings.getClientSecret());
             form.setClientId(settings.getClientId());
-            form.setRootDir(settings.getFileTransferRoot());
+
             TransferEndpoint sourceEndpoint = settings.getEndpoint();
+            form.setSourceEndpointLocalDir(sourceEndpoint.getLocalDirectory());
             form.setSourceEndpointId(sourceEndpoint.getId());
             form.setSourceEndpointDisplayName(sourceEndpoint.getDisplayName());
+
             form.setAuthUrlPrefix(settings.getAuthUrlPrefix());
             form.setBrowseEndpointUrlPrefix(settings.getBrowseEndpointUrlPrefix());
             form.setTransferApiUrlPrefix(settings.getTransferApiUrlPrefix());
@@ -126,9 +128,9 @@ public class FileTransferController extends SpringActionController
         @Override
         public boolean handlePost(FileTransferConfigForm form, BindException errors) throws Exception
         {
-            if (!StringUtils.isEmpty(form.getRootDir()))
+            if (!StringUtils.isEmpty(form.getSourceEndpointLocalDir()))
             {
-                File file = new File(form.getRootDir());
+                File file = new File(form.getSourceEndpointLocalDir());
                 if (!file.isDirectory() || !file.canWrite())
                     return false;
             }
@@ -172,6 +174,7 @@ public class FileTransferController extends SpringActionController
             session.setAttribute("fileTransferContainer", getContainer().getId());
             session.setAttribute(FileTransferManager.WEB_PART_ID_SESSION_KEY, form.getWebPartId());
             session.setAttribute(FileTransferManager.RETURN_URL_SESSION_KEY, form.getReturnUrl());
+            // TODO get the authenticator from the registry by using a key from the form
             OAuth2Authenticator authenticator = new GlobusAuthenticator(getUser(), getContainer());
             throw new RedirectException(authenticator.getAuthorizationUrl());
         }

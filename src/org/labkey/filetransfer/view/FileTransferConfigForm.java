@@ -7,7 +7,7 @@ import org.labkey.api.action.ReturnUrlForm;
  */
 public class FileTransferConfigForm extends ReturnUrlForm
 {
-    private String rootDir;
+    private String sourceEndpointLocalDir;
     private String name;
     private String clientId;
     private String clientSecret;
@@ -18,14 +18,14 @@ public class FileTransferConfigForm extends ReturnUrlForm
     private String sourceEndpointId;
     private String sourceEndpointDisplayName;
 
-    public String getRootDir()
+    public String getSourceEndpointLocalDir()
     {
-        return rootDir;
+        return sourceEndpointLocalDir;
     }
 
-    public void setRootDir(String rootDir)
+    public void setSourceEndpointLocalDir(String sourceEndpointLocalDir)
     {
-        this.rootDir = rootDir;
+        this.sourceEndpointLocalDir = sourceEndpointLocalDir;
     }
 
     public String getName()

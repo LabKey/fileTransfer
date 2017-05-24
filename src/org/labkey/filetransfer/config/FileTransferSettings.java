@@ -13,7 +13,7 @@ public class FileTransferSettings extends AbstractWriteableSettingsGroup
 {
     public static final String GROUP_NAME = "FileTransfer";
     private static final String DELIMITER = "|";
-    private static final String FILE_TRANSFER_ROOT = "rootDirectory";
+
     private static final String CLIENT_ID = "clientId";
     private static final String CLIENT_SECRET = "clientSecret";
     private static final String AUTH_URL_PREFIX = "authUrlPrefix";
@@ -22,6 +22,7 @@ public class FileTransferSettings extends AbstractWriteableSettingsGroup
     private static final String BROWSE_ENDPOINT_URL_PREFIX = "browseEndpointUrlPrefix";
     private static final String SOURCE_ENDPOINT_ID = "sourceEndpointId";
     private static final String SOURCE_ENDPOINT_NAME = "sourceEndpointName";
+    private static final String SOURCE_ENDPOINT_LOCAL_FILE_ROOT = "sourceEndpointRootDir";
 
     private String _providerName;
 
@@ -55,7 +56,7 @@ public class FileTransferSettings extends AbstractWriteableSettingsGroup
 
     public String getFileTransferRoot()
     {
-        return getRawPropertyValue(FILE_TRANSFER_ROOT);
+        return getRawPropertyValue(SOURCE_ENDPOINT_LOCAL_FILE_ROOT);
     }
 
     public String getClientId()
@@ -94,6 +95,7 @@ public class FileTransferSettings extends AbstractWriteableSettingsGroup
         String name = getRawPropertyValue(SOURCE_ENDPOINT_NAME);
         TransferEndpoint endpoint= new TransferEndpoint(endpointId, null);
         endpoint.setDisplayName(name);
+        endpoint.setLocalDirectory(getRawPropertyValue(SOURCE_ENDPOINT_LOCAL_FILE_ROOT));
         return endpoint;
     }
 
@@ -110,7 +112,7 @@ public class FileTransferSettings extends AbstractWriteableSettingsGroup
 
     public void saveProperties(FileTransferConfigForm form)
     {
-        storeStringValue(FILE_TRANSFER_ROOT, form.getRootDir());
+        storeStringValue(SOURCE_ENDPOINT_LOCAL_FILE_ROOT, form.getSourceEndpointLocalDir());
         storeStringValue(CLIENT_ID, form.getClientId());
         storeStringValue(CLIENT_SECRET, form.getClientSecret());
         storeStringValue(AUTH_URL_PREFIX, form.getAuthUrlPrefix());

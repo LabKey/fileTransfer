@@ -160,7 +160,7 @@ public class GlobusFileTransferProvider extends FileTransferProvider
     {
         String baseUrl = settings.getTransferUiUrlPrefix();
 
-        TransferEndpoint sourceEndpoint = FileTransferManager.get().getSourceEndpoint(context);
+        TransferEndpoint sourceEndpoint = FileTransferManager.get().getSourceEndpoint(properties, context);
         if (StringUtils.isNotBlank(baseUrl) && sourceEndpoint != null)
         {
             // ex: https://www.globus.org/app/transfer?origin_id=<ENDPOINT_ID>&origin_path=<ENDPOINT_DIR>

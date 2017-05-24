@@ -95,21 +95,29 @@ public class FileTransferManager
 
     public FileTransferProvider getProvider(ViewContext context)
     {
-        Map<String, String> properties = getWebPartProperties(context);
+        return getProvider(getWebPartProperties(context), context);
+    }
+
+    public FileTransferProvider getProvider(Map<String, String> properties, ViewContext context)
+    {
         return Registry.get().getProvider(context.getContainer(), context.getUser(), properties.get(FILE_TRANSFER_PROVIDER));
     }
 
-    public TransferEndpoint getSourceEndpoint(ViewContext context)
+    public TransferEndpoint getSourceEndpoint(Map<String, String> properties, ViewContext context)
     {
-        FileTransferProvider provider = getProvider(context);
+        FileTransferProvider provider = getProvider(properties, context);
         if (provider == null)
             return null;
 
         FileTransferSettings settings = provider.getSettings();
         TransferEndpoint endpoint = settings.getEndpoint();
-        Map<String, String> properties = getWebPartProperties(context);
         endpoint.setPath(properties.get(SOURCE_ENDPOINT_DIRECTORY));
         return endpoint;
+    }
+
+    public TransferEndpoint getSourceEndpoint(ViewContext context)
+    {
+        return getSourceEndpoint(getWebPartProperties(context), context);
     }
 
     public List<String> getFileNames(ViewContext context)
@@ -190,12 +198,34 @@ public class FileTransferManager
         return activeFiles;
     }
 
-    public File getLocalFilesDirectory(ViewContext context)
+    public boolean isValidTransferDirectory(Map<String, String> properties, ViewContext context)
     {
-        FileTransferProvider provider = getProvider(context);
-        Map<String, String> properties = getWebPartProperties(context);
-        if (provider == null || properties.get(LOCAL_FILES_DIRECTORY) == null || provider.getSettings() == null || provider.getSettings().getFileTransferRoot() == null)
+        File webPartFileDirectory = getLocalFilesDirectory(properties, context);
+        if (webPartFileDirectory == null)
+            return false;
+        FileTransferProvider provider = getProvider(properties, context);
+        if (provider == null || provider.getSettings() == null)
+            return false;
+        TransferEndpoint endpoint = provider.getSettings().getEndpoint();
+        if (endpoint == null)
+            return false;
+        if (endpoint.getLocalDirectory() == null)
+            return false;
+        File rootDir = new File(endpoint.getLocalDirectory());
+
+        if (!webPartFileDirectory.toPath().normalize().startsWith(rootDir.toPath().normalize()))
+            return false;
+        return webPartFileDirectory.exists() && webPartFileDirectory.canRead();
+    }
+
+    public File getLocalFilesDirectory(Map<String, String> properties, ViewContext context)
+    {
+        FileTransferProvider provider = getProvider(properties, context);
+        if (provider == null || properties.get(LOCAL_FILES_DIRECTORY) == null || provider.getSettings() == null)
             return null;
-        return new File(provider.getSettings().getFileTransferRoot(), properties.get(LOCAL_FILES_DIRECTORY));
+        TransferEndpoint endpoint = provider.getSettings().getEndpoint();
+        if (endpoint == null)
+            return null;
+        return new File(endpoint.getLocalDirectory(), properties.get(LOCAL_FILES_DIRECTORY));
     }
 }

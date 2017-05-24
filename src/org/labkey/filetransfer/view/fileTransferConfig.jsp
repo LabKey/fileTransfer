@@ -47,26 +47,6 @@
                     + 'onmouseout="return hideHelpDivDelay();"><span class="labkey-help-pop-up">?</span></a>';
         };
 
-
-        var localSettingsHeader = Ext4.create('Ext.form.Label', {
-            text: 'Local Server Settings',
-            style: 'font-weight: bold; font-size: large',
-            padding: '25px 0 0 0'
-        });
-
-        var transferRoot = Ext4.create("Ext.form.field.Text", {
-            name: "rootDir",
-            labelWidth: 200,
-            width: 535,
-            padding: '10px 0 0 25px',
-            hidden: false,
-            disabled: false,
-            fieldLabel: "File Transfer Root Directory" + getFieldHoverText('File Transfer Root Directory', 'Specify the root directory on the '
-                    + 'local file system where the files to be transferred are available.'),
-            value: <%=text(qh(bean.getRootDir()))%>,
-            allowBlank: false
-        });
-
         var clientDataHeader = Ext4.create('Ext.form.Label', {
             text: 'Client Registration Data',
             style: 'font-weight: bold; font-size:large'
@@ -188,6 +168,19 @@
                     allowBlank: true
                 });
 
+        var endpointLocalFileRoot = Ext4.create("Ext.form.field.Text", {
+            name: "sourceEndpointLocalDir",
+            labelWidth: 200,
+            width: 535,
+            padding: '10px 0 0 25px',
+            hidden: false,
+            disabled: false,
+            fieldLabel: "File Transfer Root Directory" + getFieldHoverText('Source Endpoint File Transfer Root Directory', 'Specify the root directory on the '
+                    + 'local file system where the files to be transferred from this endpoint are available.'),
+            value: <%=text(qh(bean.getSourceEndpointLocalDir()))%>,
+            allowBlank: false
+        });
+
 
         var cancelButton = Ext4.create('Ext.button.Button', {
             text: 'Cancel',
@@ -225,8 +218,6 @@
             cls: 'configFormPanel',
             width: 575,
             items : [
-                localSettingsHeader,
-                transferRoot,
                 clientDataHeader,
                 clientId,
                 clientSecret,
@@ -238,6 +229,7 @@
                 endpointsHeader,
                 endpointId,
                 endpointName,
+                endpointLocalFileRoot,
                 { xtype: 'hidden', name: 'X-LABKEY-CSRF', value: LABKEY.CSRF }
             ],
             buttons: [

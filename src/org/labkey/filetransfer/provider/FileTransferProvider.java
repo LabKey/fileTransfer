@@ -29,7 +29,6 @@ public abstract class FileTransferProvider
     public FileTransferProvider(Container container, User user, String name) throws IOException
     {
         SecurePropertiesDataStore store = new SecurePropertiesDataStore(user, container);
-        // TODO check if this actually retrieves from the database or if there's more going on
         credential = store.get(null);
         this.name = name;
         settings = new FileTransferSettings(this.name);

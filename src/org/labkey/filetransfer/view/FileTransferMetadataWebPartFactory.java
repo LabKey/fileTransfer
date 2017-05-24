@@ -37,7 +37,7 @@ public class FileTransferMetadataWebPartFactory extends BaseWebPartFactory
         WebPartView view = new JspView("/org/labkey/filetransfer/view/fileList.jsp");
         view.setTitle(propertyMap.getOrDefault("webpart.title", NAME));
         FileTransferManager manager = FileTransferManager.get();
-        if (manager.isMetadataListConfigured(propertyMap))
+        if (manager.isMetadataListConfigured(propertyMap) && manager.isValidTransferDirectory(propertyMap, context))
         {
             UserSchema schema = QueryService.get().getUserSchema(context.getUser(), context.getContainer(), FileTransferQuerySchema.NAME);
 

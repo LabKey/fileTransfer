@@ -37,7 +37,7 @@ public class FileTransferMetadataTable extends FilteredTable<UserSchema>
         getColumn("Created").setHidden(true);
         getColumn("Container").setHidden(true);
 
-        File filesDir = FileTransferManager.get().getLocalFilesDirectory(context);
+        File filesDir = FileTransferManager.get().getLocalFilesDirectory(properties, context);
         if (filesDir != null && filesDir.exists() && filesDir.canRead())
         {
             List<String> activeFiles = FileTransferManager.get().getActiveFiles(filesDir);
