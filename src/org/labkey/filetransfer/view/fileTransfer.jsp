@@ -123,7 +123,7 @@
     if (bean.getAuthorized() && bean.getSource() != null)
     {
 %>
-Preparing to transfer the following files from directory <%= h(bean.getSource().getPath()) %> on endpoint '<%= h(bean.getSource().getDisplayName()) %>'.
+Preparing to transfer the following files from directory <%= h(bean.getSource().getPath()) %> on source endpoint '<%= h(bean.getSource().getDisplayName()) %>'.
 <ul>
     <%
         for (String filename : bean.getFileNames())
@@ -144,9 +144,9 @@ Select destination endpoint.
         else
         {
 %>
-Click the 'Transfer' button below to initiate the transfer to directory <%=h(bean.getDestination().getPath())%> on endpoint '<%=h(bean.getDestination().getDisplayName())%>'
+Click the 'Transfer' button below to initiate the transfer to directory <%=h(bean.getDestination().getPath())%> on destination endpoint '<%=h(bean.getDestination().getDisplayName())%>'
 <br>
-<b>OR</b> Select a different destination endpoint.
+<b>OR</b> select a different destination endpoint.
 <%
         }
         out.write(PageFlowUtil.button("Browse").href(browseEndpointsUrl).toString());
