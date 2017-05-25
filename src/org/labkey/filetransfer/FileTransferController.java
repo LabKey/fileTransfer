@@ -64,6 +64,7 @@ import java.net.URISyntaxException;
 import static org.labkey.api.data.DataRegionSelection.DATA_REGION_SELECTION_KEY;
 import static org.labkey.filetransfer.FileTransferManager.ENDPOINT_ID_SESSION_KEY;
 import static org.labkey.filetransfer.FileTransferManager.ENDPOINT_PATH_SESSION_KEY;
+import static org.labkey.filetransfer.FileTransferManager.FILE_TRANSFER_CONTAINER;
 
 @Marshal(Marshaller.Jackson)
 public class FileTransferController extends SpringActionController
@@ -173,6 +174,7 @@ public class FileTransferController extends SpringActionController
         {
             HttpSession session = getViewContext().getRequest().getSession();
             session.setAttribute(DATA_REGION_SELECTION_KEY, form.getDataRegionSelectionKey());
+            session.setAttribute(FILE_TRANSFER_CONTAINER, getContainer().getId());
             session.setAttribute(FileTransferManager.WEB_PART_ID_SESSION_KEY, form.getWebPartId());
             session.setAttribute(FileTransferManager.RETURN_URL_SESSION_KEY, form.getReturnUrl());
             FileTransferProvider provider = FileTransferManager.get().getProvider(getViewContext());

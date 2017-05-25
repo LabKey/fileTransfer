@@ -50,7 +50,6 @@ import static org.labkey.api.data.DataRegionSelection.DATA_REGION_SELECTION_KEY;
 public class FileTransferManager
 {
     private static final FileTransferManager _instance = new FileTransferManager();
-    public static final String FILE_TRANSFER_CONFIG_PROPERTIES = "fileTransferConfigProperties";
     public static final String LOCAL_FILES_DIRECTORY = "localFilesDirectory";
     public static final String REFERENCE_FOLDER = "listFolder";
     public static final String REFERENCE_LIST = "listTable";
@@ -58,6 +57,7 @@ public class FileTransferManager
     public static final String SOURCE_ENDPOINT_DIRECTORY = "sourceEndpointDir";
 
     public static final String WEB_PART_ID_SESSION_KEY = "fileTransferWebPartId";
+    public static final String FILE_TRANSFER_CONTAINER = "fileTransferContainer";
     public static final String RETURN_URL_SESSION_KEY = "fileTransferReturnUrl";
     public static final String FILE_TRANSFER_PROVIDER = "fileTransferProvider";
     public static final String ENDPOINT_ID_SESSION_KEY = "destinationEndpointId";
@@ -83,12 +83,23 @@ public class FileTransferManager
         return properties != null && !properties.isEmpty();
     }
 
+    public Container getContainer(ViewContext context)
+    {
+        String containerId = (String) context.getRequest().getSession().getAttribute(FILE_TRANSFER_CONTAINER);
+        if (containerId == null)
+            return null;
+        return ContainerManager.getForId(containerId);
+    }
+
     private Map<String, String> getWebPartProperties(ViewContext context)
     {
         Integer webPartId = (Integer) context.getRequest().getSession().getAttribute(WEB_PART_ID_SESSION_KEY);
         if (webPartId == null)
             return Collections.emptyMap();
-        Portal.WebPart webPart =  Portal.getPart(context.getContainer(), webPartId);
+        Container container = getContainer(context);
+        if (container == null)
+            return Collections.emptyMap();
+        Portal.WebPart webPart =  Portal.getPart(container, webPartId);
         return webPart.getPropertyMap();
     }
 
@@ -127,7 +138,9 @@ public class FileTransferManager
     public List<String> getFileNames(ViewContext context)
     {
         HttpSession session = context.getSession();
-        // TODO do we need to get the container from the session as well?
+        Container sessionContainer = getContainer(context);
+        if (sessionContainer != null)
+            context.setContainer(getContainer(context));
         String key = (String) session.getAttribute(DATA_REGION_SELECTION_KEY);
         Map<String, String> properties = getWebPartProperties(context);
         ListDefinition listDef = FileTransferManager.get().getMetadataList(properties);
@@ -135,6 +148,7 @@ public class FileTransferManager
         if (listDef != null)
         {
             SimpleFilter filter;
+
             Set<String> selectedVals = DataRegionSelection.getSelected(context, key, true, false);
 
             if (listDef.getKeyType() == ListDefinition.KeyType.AutoIncrementInteger || listDef.getKeyType() == ListDefinition.KeyType.Integer)

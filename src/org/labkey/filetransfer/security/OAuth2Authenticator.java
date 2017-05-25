@@ -16,6 +16,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.DataStore;
 import org.apache.log4j.Logger;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.ContainerManager;
 import org.labkey.api.security.User;
 import org.labkey.api.view.ActionURL;
 import org.labkey.filetransfer.FileTransferController;
@@ -71,7 +72,7 @@ public abstract class OAuth2Authenticator
 
     public String getRedirectUri()
     {
-        return new ActionURL(FileTransferController.TokensAction.class, container).getURIString();
+        return new ActionURL(FileTransferController.TokensAction.class, ContainerManager.getRoot()).getURIString();
     }
 
     public BasicAuthentication getClientAuthentication()

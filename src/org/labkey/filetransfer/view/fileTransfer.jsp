@@ -120,7 +120,7 @@
 
 <span class="labkey-fileTransfer-notification" id="notification"><%=h(notifyMsg)%></span>
 <%
-    if (bean.getAuthorized() && bean.getSource() != null)
+    if (notifyMsg.isEmpty())
     {
 %>
 Preparing to transfer the following files from directory <%= h(bean.getSource().getPath()) %> on source endpoint '<%= h(bean.getSource().getDisplayName()) %>'.
