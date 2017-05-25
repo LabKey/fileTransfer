@@ -40,8 +40,10 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.labkey.api.data.DataRegionSelection.DATA_REGION_SELECTION_KEY;
 
@@ -95,14 +97,19 @@ public class FileTransferManager
         return getProvider(getWebPartProperties(context), context);
     }
 
+    public FileTransferProvider getProvider(Map<String, String> properties)
+    {
+        return Registry.get().getProvider(properties.get(FILE_TRANSFER_PROVIDER));
+    }
+
     public FileTransferProvider getProvider(Map<String, String> properties, ViewContext context)
     {
         return Registry.get().getProvider(context.getContainer(), context.getUser(), properties.get(FILE_TRANSFER_PROVIDER));
     }
 
-    public TransferEndpoint getSourceEndpoint(Map<String, String> properties, ViewContext context)
+    public TransferEndpoint getSourceEndpoint(Map<String, String> properties)
     {
-        FileTransferProvider provider = getProvider(properties, context);
+        FileTransferProvider provider = getProvider(properties);
         if (provider == null)
             return null;
 
@@ -114,7 +121,7 @@ public class FileTransferManager
 
     public TransferEndpoint getSourceEndpoint(ViewContext context)
     {
-        return getSourceEndpoint(getWebPartProperties(context), context);
+        return getSourceEndpoint(getWebPartProperties(context));
     }
 
     public List<String> getFileNames(ViewContext context)
@@ -124,9 +131,23 @@ public class FileTransferManager
         String key = (String) session.getAttribute(DATA_REGION_SELECTION_KEY);
         Map<String, String> properties = getWebPartProperties(context);
         ListDefinition listDef = FileTransferManager.get().getMetadataList(properties);
+
         if (listDef != null)
         {
-            SimpleFilter filter = new SimpleFilter(new SimpleFilter.InClause(FieldKey.fromParts(listDef.getKeyName()), DataRegionSelection.getSelected(context, key, true, false)));
+            SimpleFilter filter;
+            Set<String> selectedVals = DataRegionSelection.getSelected(context, key, true, false);
+
+            if (listDef.getKeyType() == ListDefinition.KeyType.AutoIncrementInteger || listDef.getKeyType() == ListDefinition.KeyType.Integer)
+            {
+                Set<Integer> selectionIds = new HashSet<>();
+                for (String val : selectedVals)
+                {
+                    selectionIds.add(Integer.parseInt(val));
+                }
+                filter = new SimpleFilter(new SimpleFilter.InClause(FieldKey.fromParts(listDef.getKeyName()), selectionIds));
+            }
+            else
+                filter = new SimpleFilter(new SimpleFilter.InClause(FieldKey.fromParts(listDef.getKeyName()), selectedVals));
             Sort sort = new Sort(FieldKey.fromParts(properties.get(REFERENCE_COLUMN)));
             TableInfo tableInfo = listDef.getTable(context.getUser());
             if (tableInfo != null)
@@ -190,12 +211,12 @@ public class FileTransferManager
         return activeFiles;
     }
 
-    public boolean isValidTransferDirectory(Map<String, String> properties, ViewContext context)
+    public boolean isValidTransferDirectory(Map<String, String> properties)
     {
-        File webPartFileDirectory = getLocalFilesDirectory(properties, context);
+        File webPartFileDirectory = getLocalFilesDirectory(properties);
         if (webPartFileDirectory == null)
             return false;
-        FileTransferProvider provider = getProvider(properties, context);
+        FileTransferProvider provider = getProvider(properties);
         if (provider == null || provider.getSettings() == null)
             return false;
         TransferEndpoint endpoint = provider.getSettings().getEndpoint();
@@ -210,9 +231,9 @@ public class FileTransferManager
         return webPartFileDirectory.exists() && webPartFileDirectory.canRead();
     }
 
-    public File getLocalFilesDirectory(Map<String, String> properties, ViewContext context)
+    public File getLocalFilesDirectory(Map<String, String> properties)
     {
-        FileTransferProvider provider = getProvider(properties, context);
+        FileTransferProvider provider = getProvider(properties);
         if (provider == null || properties.get(LOCAL_FILES_DIRECTORY) == null || provider.getSettings() == null)
             return null;
         TransferEndpoint endpoint = provider.getSettings().getEndpoint();

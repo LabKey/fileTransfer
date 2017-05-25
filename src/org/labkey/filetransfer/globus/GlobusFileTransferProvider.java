@@ -42,6 +42,11 @@ public class GlobusFileTransferProvider extends FileTransferProvider
 {
     public static final String NAME = "Globus";
 
+    public GlobusFileTransferProvider()
+    {
+        super(NAME);
+    }
+
     public GlobusFileTransferProvider(Container container, User user) throws IOException
     {
        super(container, user, NAME);
@@ -160,7 +165,7 @@ public class GlobusFileTransferProvider extends FileTransferProvider
     {
         String baseUrl = settings.getTransferUiUrlPrefix();
 
-        TransferEndpoint sourceEndpoint = FileTransferManager.get().getSourceEndpoint(properties, context);
+        TransferEndpoint sourceEndpoint = FileTransferManager.get().getSourceEndpoint(properties);
         if (StringUtils.isNotBlank(baseUrl) && sourceEndpoint != null)
         {
             // ex: https://www.globus.org/app/transfer?origin_id=<ENDPOINT_ID>&origin_path=<ENDPOINT_DIR>

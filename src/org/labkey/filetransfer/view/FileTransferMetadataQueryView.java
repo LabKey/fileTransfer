@@ -46,14 +46,14 @@ public class FileTransferMetadataQueryView extends QueryView
             listDef = FileTransferManager.get().getMetadataList(this.properties);
             provider = Registry.get().getProvider(getContainer(), getUser(), this.properties.get(FILE_TRANSFER_PROVIDER));
         }
-        if (!FileTransferManager.get().isValidTransferDirectory(this.properties, getViewContext()))
+        if (!FileTransferManager.get().isValidTransferDirectory(this.properties))
             listDef = null;
     }
 
     @Override
     protected TableInfo createTable()
     {
-        return listDef == null ? null : new FileTransferMetadataTable(properties, listDef.getTable(getUser()), new FileTransferQuerySchema(getUser(), getContainer()), getViewContext());
+        return listDef == null ? null : new FileTransferMetadataTable(properties, listDef.getTable(getUser()), new FileTransferQuerySchema(getUser(), getContainer()));
     }
 
     @Override

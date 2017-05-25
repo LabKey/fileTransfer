@@ -26,12 +26,17 @@ public abstract class FileTransferProvider
     protected StoredCredential credential;
     protected FileTransferSettings settings;
 
-    public FileTransferProvider(Container container, User user, String name) throws IOException
+    public FileTransferProvider(String name)
     {
-        SecurePropertiesDataStore store = new SecurePropertiesDataStore(user, container);
-        credential = store.get(null);
         this.name = name;
         settings = new FileTransferSettings(this.name);
+    }
+
+    public FileTransferProvider(Container container, User user, String name) throws IOException
+    {
+        this(name);
+        SecurePropertiesDataStore store = new SecurePropertiesDataStore(user, container);
+        credential = store.get(null);
     }
 
     public String getName()

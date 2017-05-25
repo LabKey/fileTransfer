@@ -8,7 +8,6 @@ import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.UserSchema;
-import org.labkey.api.view.ViewContext;
 import org.labkey.filetransfer.FileTransferManager;
 
 import java.io.File;
@@ -24,7 +23,7 @@ import static org.labkey.filetransfer.FileTransferManager.REFERENCE_COLUMN;
  */
 public class FileTransferMetadataTable extends FilteredTable<UserSchema>
 {
-    public FileTransferMetadataTable(Map<String, String> properties, TableInfo table, @NotNull UserSchema userSchema, ViewContext context)
+    public FileTransferMetadataTable(Map<String, String> properties, TableInfo table, @NotNull UserSchema userSchema)
     {
         super(table, userSchema, ContainerFilter.EVERYTHING);
 
@@ -37,7 +36,7 @@ public class FileTransferMetadataTable extends FilteredTable<UserSchema>
         getColumn("Created").setHidden(true);
         getColumn("Container").setHidden(true);
 
-        File filesDir = FileTransferManager.get().getLocalFilesDirectory(properties, context);
+        File filesDir = FileTransferManager.get().getLocalFilesDirectory(properties);
         if (filesDir != null && filesDir.exists() && filesDir.canRead())
         {
             List<String> activeFiles = FileTransferManager.get().getActiveFiles(filesDir);

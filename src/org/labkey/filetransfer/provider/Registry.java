@@ -36,6 +36,22 @@ public class Registry
         return _providers.get(name);
     }
 
+    public FileTransferProvider getProvider(String name)
+    {
+        if (name == null)
+            return null;
+        try
+        {
+            Class<? extends FileTransferProvider> providerClass = _providers.get(name);
+            return providerClass.newInstance();
+        }
+        catch (InstantiationException | IllegalAccessException e)
+        {
+            logger.error("Unable to find provider with name '" + name + "'", e);
+            return null;
+        }
+    }
+
     public FileTransferProvider getProvider(Container container, User user, String name)
     {
         if (name == null)

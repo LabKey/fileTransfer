@@ -29,28 +29,35 @@ public class TransferView extends JspView<TransferBean>
         TransferBean bean = new TransferBean();
 
         bean.setSource(FileTransferManager.get().getSourceEndpoint(context));
-        bean.setBrowseEndpointsUrl(provider.getBrowseEndpointUrl(context.getContainer()));
-        bean.setProviderName(provider.getName());
         bean.setAuthorized(form.getAuthorized());
         bean.setLabel(form.getLabel());
         bean.setReturnUrl(form.getReturnUrl());
-
-        if (form.getDestinationId() != null)
+        if (provider != null)
         {
-            TransferEndpoint destinationEndpoint = provider.getEndpoint(form.getDestinationId());
-            if (destinationEndpoint == null)
-                bean.setDestination(new TransferEndpoint(form.getDestinationId(), form.getPath()));
+            bean.setBrowseEndpointsUrl(provider.getBrowseEndpointUrl(context.getContainer()));
+            bean.setProviderName(provider.getName());
+
+            if (form.getDestinationId() != null)
+            {
+                TransferEndpoint destinationEndpoint = provider.getEndpoint(form.getDestinationId());
+                if (destinationEndpoint == null)
+                    bean.setDestination(new TransferEndpoint(form.getDestinationId(), form.getPath()));
+                else
+                {
+                    destinationEndpoint.setPath(form.getPath());
+                    bean.setDestination(destinationEndpoint);
+                }
+            }
             else
             {
-                destinationEndpoint.setPath(form.getPath());
-                bean.setDestination(destinationEndpoint);
+                TransferEndpoint destinationEndpoint = FileTransferManager.get().getDestinationEndpoint(context);
+                if (destinationEndpoint != null)
+                    bean.setDestination(destinationEndpoint);
             }
         }
         else
         {
-            TransferEndpoint destinationEndpoint = FileTransferManager.get().getDestinationEndpoint(context);
-            if (destinationEndpoint != null)
-                bean.setDestination(destinationEndpoint);
+            bean.setErrorCode(FileTransferManager.ErrorCode.noProvider);
         }
 
         bean.setFileNames(FileTransferManager.get().getFileNames(getViewContext()));
