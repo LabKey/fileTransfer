@@ -40,10 +40,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.labkey.api.data.DataRegionSelection.DATA_REGION_SELECTION_KEY;
 
@@ -124,16 +122,11 @@ public class FileTransferManager
         HttpSession session = context.getSession();
         // TODO do we need to get the container from the session as well?
         String key = (String) session.getAttribute(DATA_REGION_SELECTION_KEY);
-        Set<Integer> selectedInts = new HashSet<>();
-        for (String selection: DataRegionSelection.getSelected(context, key, true, false))
-        {
-            selectedInts.add(Integer.parseInt(selection));
-        }
         Map<String, String> properties = getWebPartProperties(context);
         ListDefinition listDef = FileTransferManager.get().getMetadataList(properties);
         if (listDef != null)
         {
-            SimpleFilter filter = new SimpleFilter(new SimpleFilter.InClause(FieldKey.fromParts(listDef.getKeyName()), selectedInts));
+            SimpleFilter filter = new SimpleFilter(new SimpleFilter.InClause(FieldKey.fromParts(listDef.getKeyName()), DataRegionSelection.getSelected(context, key, true, false)));
             Sort sort = new Sort(FieldKey.fromParts(properties.get(REFERENCE_COLUMN)));
             TableInfo tableInfo = listDef.getTable(context.getUser());
             if (tableInfo != null)
