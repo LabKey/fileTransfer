@@ -29,8 +29,8 @@ import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleResponse;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
+import org.labkey.api.admin.AdminUrls;
 import org.labkey.api.data.ContainerManager;
-import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.security.CSRF;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.User;
@@ -96,6 +96,8 @@ public class FileTransferController extends SpringActionController
         @Override
         public void validateCommand(FileTransferConfigForm form, Errors errors)
         {
+            if (form.getSourceEndpointLocalDir() == null)
+                return;
             File file = new File(form.getSourceEndpointLocalDir());
             if (form.getSourceEndpointLocalDir() != null)
             {
@@ -149,7 +151,7 @@ public class FileTransferController extends SpringActionController
             if (form.getReturnUrl() != null)
                 return new ActionURL(form.getReturnUrl());
             else
-                return PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
+                return PageFlowUtil.urlProvider(AdminUrls.class).getAdminConsoleURL();
         }
     }
 

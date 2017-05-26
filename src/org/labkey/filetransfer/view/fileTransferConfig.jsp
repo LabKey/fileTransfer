@@ -178,7 +178,7 @@
             fieldLabel: "File Transfer Root Directory" + getFieldHoverText('Source Endpoint File Transfer Root Directory', 'Specify the root directory on the '
                     + 'local file system where the files to be transferred from this endpoint are available.'),
             value: <%=text(qh(bean.getSourceEndpointLocalDir()))%>,
-            allowBlank: false
+            allowBlank: true
         });
 
 
@@ -189,7 +189,7 @@
             {
                 var url = LABKEY.ActionURL.getParameter("returnUrl");
                 if (!url)
-                    url = LABKEY.ActionURL.buildURL("project", "begin.view");
+                    url = LABKEY.ActionURL.buildURL("admin", "showAdmin.view");
 
                 window.location = url;
             }

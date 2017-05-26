@@ -17,6 +17,7 @@
      */
 %>
 
+<%@ page import="org.apache.commons.lang3.StringUtils" %>
 <%@ page import="org.labkey.api.view.JspView" %>
 <%@ page import="org.labkey.api.view.Portal" %>
 <%@ page import="org.labkey.api.view.template.ClientDependencies" %>
@@ -38,8 +39,6 @@
     Portal.WebPart webPart = bean.getWebPart();
     FileTransferProvider provider = bean.getProvider();
     Map<String, String> properties = webPart.getPropertyMap();
-    String initialDir = properties.get("localFilesDirectory") == null ? provider.getSettings().getFileTransferRoot() : properties.get("localFilesDirectory");
-//    String initialDir = "TEST";
     String title = properties.get("webpart.title") != null ? properties.get("webpart.title"): "File Transfer";
 %>
 <labkey:errors/>
@@ -68,10 +67,12 @@
             allowBlank: false
         });
 
+        var localDirMsg = <%= StringUtils.isEmpty(provider.getSettings().getFileTransferRoot()) %> ? 'The file transfer root directory must first be configured in the admin console before proceeding with this configuration step.' : 'Specify the directory on the '
+                + 'local file system relative to <%=h(provider.getSettings().getFileTransferRoot())%> where the files to be transferred in this webpart are available.';
+
         var localFilesDirectoryHeader = Ext4.create('Ext.form.Label', {
-            html: '<span style="font-weight: bold">Files Directory</span></br>' +
-            'Specify the directory on the local file system relative to <%=h(provider.getSettings().getFileTransferRoot())%> where the files to be transferred in this webpart are available'
-        });
+                html: '<span style="font-weight: bold">Files Directory</span></br>' + localDirMsg
+           });
 
         var localFilesDirectoryField = Ext4.create('Ext.form.field.Text', {
             name: "localFilesDirectory",
@@ -79,9 +80,8 @@
             width: 510,
             padding: '10px 0 25px 0',
             hidden: false,
-            disabled: false,
-            fieldLabel: "Local Directory" + getFieldHoverText('Local Directory', 'Specify the directory on the '
-                    + 'local file system relative to <%=h(provider.getSettings().getFileTransferRoot())%> where the files to be transferred in this webpart are available.'),
+            disabled: <%=StringUtils.isEmpty(provider.getSettings().getFileTransferRoot())%>,
+            fieldLabel: "Local Directory" + getFieldHoverText('Local Directory', localDirMsg),
             initialValue : <%=q(properties.get("localFilesDirectory"))%>,
             value: <%=q(properties.get("localFilesDirectory"))%>,
             allowBlank: false

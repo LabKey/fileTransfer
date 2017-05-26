@@ -17,14 +17,15 @@
      */
 %>
 
+<%@ page import="org.apache.commons.lang3.StringUtils" %>
 <%@ page import="org.labkey.api.util.Button" %>
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page import="org.labkey.api.view.JspView" %>
 <%@ page import="org.labkey.api.view.template.ClientDependencies" %>
 <%@ page import="org.labkey.filetransfer.FileTransferController" %>
-<%@ page import="org.labkey.filetransfer.model.TransferBean" %>
 <%@ page import="org.labkey.filetransfer.FileTransferManager" %>
+<%@ page import="org.labkey.filetransfer.model.TransferBean" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
     @Override
@@ -77,7 +78,7 @@
                     if (jsonResp.success) {
                         Ext4.Msg.show({
                                     title: 'Transfer Request ' + <%=q(bean.getLabel() == null ? "" : "\"" + bean.getLabel() + "\"")%> + ' Made',
-                                    msg: jsonResp.data['message'] + '.  Check the <%=h(bean.getProviderName())%> website for status information.',
+                                    msg: jsonResp.data['message'] + '.  Check the <%=h(bean.getProviderName())%> website for status information<%= h(!StringUtils.isEmpty(bean.getLabel()) ? " for the transfer labeled '" + bean.getLabel() + "'" : "")%>.',
                                     icon: Ext4.window.MessageBox.INFO,
                                     buttonText: {
                                         ok: 'OK',
@@ -144,7 +145,9 @@ Select destination endpoint.
         else
         {
 %>
-Click the 'Transfer' button below to initiate the transfer to directory <%=h(bean.getDestination().getPath())%> on destination endpoint '<%=h(bean.getDestination().getDisplayName())%>'
+Click the 'Transfer' button below to initiate the transfer
+<%= h(!StringUtils.isEmpty(bean.getLabel()) ? "using label '" + bean.getLabel() + "'" : "") %>
+to directory <%=h(bean.getDestination().getPath())%> on destination endpoint '<%=h(bean.getDestination().getDisplayName())%>'
 <br>
 <b>OR</b> select a different destination endpoint.
 <%
