@@ -29,6 +29,7 @@
     @Override
     public void addClientDependencies(ClientDependencies dependencies)
     {
+        dependencies.add("Ext4");
         dependencies.add("sqv");
         dependencies.add("fileTransfer/fileTransferConfig.css");
     }
@@ -59,8 +60,6 @@
             labelWidth: 150,
             width: 510,
             padding: '10px 0 25px 0',
-            hidden: false,
-            disabled: false,
             fieldLabel: "Web Part Title",
             initialValue : <%=text(qh(title))%>,
             value: <%=text(qh(title))%>,
@@ -79,7 +78,6 @@
             labelWidth: 150,
             width: 510,
             padding: '10px 0 25px 0',
-            hidden: false,
             disabled: <%=StringUtils.isEmpty(provider.getSettings().getFileTransferRoot())%>,
             fieldLabel: "Local Directory" + getFieldHoverText('Local Directory', localDirMsg),
             initialValue : <%=q(properties.get("localFilesDirectory"))%>,

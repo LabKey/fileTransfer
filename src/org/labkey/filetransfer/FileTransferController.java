@@ -31,6 +31,7 @@ import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.admin.AdminUrls;
 import org.labkey.api.data.ContainerManager;
+import org.labkey.api.security.AdminConsoleAction;
 import org.labkey.api.security.CSRF;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.User;
@@ -83,7 +84,7 @@ public class FileTransferController extends SpringActionController
     }
 
     @CSRF
-    @RequiresPermission(AdminOperationsPermission.class)
+    @AdminConsoleAction(AdminOperationsPermission.class)
     public class ConfigurationAction extends FormViewAction<FileTransferConfigForm>
     {
         @Override
@@ -230,7 +231,7 @@ public class FileTransferController extends SpringActionController
     @RequiresPermission(ReadPermission.class)
     public class TokensAction extends RedirectAction<AuthForm>
     {
-        Boolean authorized = true;
+        Boolean authorized = false;
         FileTransferManager.ErrorCode errorCode = null;
 
         @Override
@@ -267,25 +268,21 @@ public class FileTransferController extends SpringActionController
             {
                 SecurePropertiesDataStore store = new SecurePropertiesDataStore(getUser(), getContainer());
 
-                // TODO check if this actually retrieves from the database or if there's more going on
-//                StoredCredential credential = store.get(null);
-//                if (credential.getAccessToken() == null || credential.getExpirationTimeMilliseconds() == null || credential.getExpirationTimeMilliseconds() <= 0)
+                FileTransferProvider provider = FileTransferManager.get().getProvider(getViewContext());
+                if (provider != null)
                 {
-                    FileTransferProvider provider = FileTransferManager.get().getProvider(getViewContext());
-                    if (provider != null)
-                    {
-                        OAuth2Authenticator authenticator = provider.getAuthenticator(getContainer(), getUser());
+                    OAuth2Authenticator authenticator = provider.getAuthenticator(getContainer(), getUser());
 
-                        Credential c = authenticator.getTokens(form.getCode());
-                        if (c.getAccessToken() != null)
-                        {
-                            store.set(store.getId(), new StoredCredential(c));
-                            return true;
-                        }
+                    Credential c = authenticator.getTokens(form.getCode());
+                    if (c.getAccessToken() != null)
+                    {
+                        store.set(store.getId(), new StoredCredential(c));
+                        this.authorized = true;
+                        return true;
                     }
-                    else
-                        errorCode = FileTransferManager.ErrorCode.noProvider;
                 }
+                else
+                    errorCode = FileTransferManager.ErrorCode.noProvider;
             }
             return true;
         }

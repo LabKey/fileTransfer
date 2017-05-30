@@ -151,6 +151,7 @@ public class FileTransferManager
 
             Set<String> selectedVals = DataRegionSelection.getSelected(context, key, true, false);
 
+            // TODO create a helper method for inClause that compensates for the key type
             if (listDef.getKeyType() == ListDefinition.KeyType.AutoIncrementInteger || listDef.getKeyType() == ListDefinition.KeyType.Integer)
             {
                 Set<Integer> selectionIds = new HashSet<>();

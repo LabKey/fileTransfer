@@ -19,6 +19,7 @@ package org.labkey.filetransfer;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
+import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.settings.AdminConsole;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.filetransfer.globus.GlobusFileTransferProvider;
@@ -66,7 +67,7 @@ public class FileTransferModule extends DefaultModule
 
     public static void registerAdminConsoleLinks()
     {
-        AdminConsole.addLink(AdminConsole.SettingsLinkType.Configuration, "File Transfer", FileTransferController.getComplianceSettingsURL());
+        AdminConsole.addLink(AdminConsole.SettingsLinkType.Configuration, "File Transfer", FileTransferController.getComplianceSettingsURL(), AdminPermission.class);
     }
 
     @Override

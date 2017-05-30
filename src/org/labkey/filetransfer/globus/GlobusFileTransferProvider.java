@@ -13,6 +13,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
@@ -30,6 +31,7 @@ import org.labkey.filetransfer.security.OAuth2Authenticator;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +42,7 @@ import java.util.Map;
  */
 public class GlobusFileTransferProvider extends FileTransferProvider
 {
+    public static final Logger logger = Logger.getLogger(GlobusFileTransferProvider.class);
     public static final String NAME = "Globus";
 
     public GlobusFileTransferProvider()
@@ -155,6 +158,10 @@ public class GlobusFileTransferProvider extends FileTransferProvider
                     ObjectMapper mapper = new ObjectMapper();
                     return mapper.readValue(contents, clazz);
                 }
+            }
+            catch (UnknownHostException e)
+            {
+                logger.error("Could not make request using uri " + uri, e);
             }
         }
         return null;
