@@ -69,7 +69,7 @@ public class GlobusFileTransferProvider extends FileTransferProvider
         SubmissionId submissionId = (SubmissionId) makeApiGetRequest(submissionIdUri, SubmissionId.class);
 
         if (submissionId == null || submissionId.getValue() == null)
-            throw new Exception("Could not retrieve submission id from uri " + submissionIdUri);
+            throw new Exception("Could not retrieve submission id from uri " + submissionIdUri + ".  The provider's service may be down or there could be a configuration problem.  Please contact an administrator.");
 
         JSONObject transferObject = new JSONObject();
         transferObject.put("DATA_TYPE", "transfer");
