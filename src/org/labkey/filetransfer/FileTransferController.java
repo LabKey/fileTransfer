@@ -274,7 +274,12 @@ public class FileTransferController extends SpringActionController
                     OAuth2Authenticator authenticator = provider.getAuthenticator(getContainer(), getUser());
 
                     Credential c = authenticator.getTokens(form.getCode());
-                    if (c.getAccessToken() != null)
+                    if (c == null || c.getAccessToken() == null)
+                    {
+                        errorCode = FileTransferManager.ErrorCode.noTokens;
+                        return true;
+                    }
+                    else
                     {
                         store.set(store.getId(), new StoredCredential(c));
                         this.authorized = true;

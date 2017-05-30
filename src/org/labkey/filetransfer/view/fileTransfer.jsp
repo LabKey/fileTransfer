@@ -42,6 +42,9 @@
     String notifyMsg = "";
     if (bean.getErrorCode() == FileTransferManager.ErrorCode.noProvider)
         notifyMsg = "No file transfer provider available in the session.";
+    else if (bean.getErrorCode() == FileTransferManager.ErrorCode.noTokens)
+        notifyMsg = "Unable to retrieve access tokens from provider '" + bean.getProviderName() + "'. The provider's service may be offline or there could be a configuration problem with this module. " +
+                "Please contact an administrator.";
     else if (bean.getSource() == null)
         notifyMsg = "Source endpoint has not yet been configured.";
     else if (!bean.getAuthorized())

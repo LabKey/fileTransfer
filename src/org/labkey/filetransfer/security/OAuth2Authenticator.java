@@ -80,16 +80,27 @@ public abstract class OAuth2Authenticator
         return new BasicAuthentication(settings.getClientId(), settings.getClientSecret());
     }
 
-    public Credential getTokens(String authCode) throws Exception
+    public Credential getTokens(String authCode)
     {
         AuthorizationCodeTokenRequest tokenRequest = new AuthorizationCodeTokenRequest(new NetHttpTransport(), new JacksonFactory(), new GenericUrl(getTokensUrlPrefix()), authCode);
         tokenRequest.setRedirectUri(getRedirectUri());
         tokenRequest.setClientAuthentication(getClientAuthentication());
-        TokenResponse response = tokenRequest.execute();
-        if (response.getAccessToken() != null)
-            return createCredentialWithRefreshToken(user, container, tokenRequest.getTransport(), tokenRequest.getJsonFactory(), response);
-        else
+
+        TokenResponse response = null;
+        try
+        {
+            response = tokenRequest.execute();
+
+            if (response.getAccessToken() != null)
+                return createCredentialWithRefreshToken(user, container, tokenRequest.getTransport(), tokenRequest.getJsonFactory(), response);
+            else
+                return null;
+        }
+        catch (IOException e)
+        {
+            logger.error("Unable to retrieve tokens using URL prefix " + getTokensUrlPrefix());
             return null;
+        }
     }
 
     public Credential createCredentialWithRefreshToken(User user, Container container, HttpTransport transport, JsonFactory jsonFactory, TokenResponse tokenResponse) throws IOException

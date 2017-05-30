@@ -65,7 +65,8 @@ public class FileTransferManager
 
     public enum ErrorCode
     {
-        noProvider
+        noProvider,
+        noTokens
     }
 
     private FileTransferManager()

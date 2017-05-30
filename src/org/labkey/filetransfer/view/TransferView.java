@@ -32,6 +32,7 @@ public class TransferView extends JspView<TransferBean>
         bean.setAuthorized(form.getAuthorized());
         bean.setLabel(form.getLabel());
         bean.setReturnUrl(form.getReturnUrl());
+        bean.setErrorCode(form.getErrorCode());
         if (provider != null)
         {
             bean.setBrowseEndpointsUrl(provider.getBrowseEndpointUrl(context.getContainer()));
