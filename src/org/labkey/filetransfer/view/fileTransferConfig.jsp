@@ -92,8 +92,8 @@
             padding: '10px 0 0 25px',
             disabled: <%=!canEdit%>,
             fieldLabel: "Authorization URL Prefix" + getFieldHoverText('Authorization URL Prefix', 'The prefix to the authorization service used for obtaining authorization codes and for requesting tokens. (e.g., https://auth.globus.org/v2/oauth2)'),
-            initialValue : <%=q(bean.getAuthUrlPrefix())%>,
-            value: <%=q(bean.getAuthUrlPrefix())%>,
+            initialValue : <%=q(bean.getAuthUrlPrefix() == null ? "https://auth.globus.org/v2/oauth2" : bean.getAuthUrlPrefix())%>,
+            value: <%=q(bean.getAuthUrlPrefix() == null ? "https://auth.globus.org/v2/oauth2" : bean.getAuthUrlPrefix())%>,
             allowBlank: false
         });
 
@@ -104,8 +104,8 @@
             padding: '10px 0 0 25px',
             disabled: <%=!canEdit%>,
             fieldLabel: "Transfer API URL Prefix" + getFieldHoverText('Transfer API URL Prefix', 'The prefix to the transfer API used for making transfer requests. (e.g, https://transfer.api.globusonline.org/v0.10)'),
-            initialValue : <%=q(bean.getTransferApiUrlPrefix())%>,
-            value: <%=q(bean.getTransferApiUrlPrefix())%>,
+            initialValue : <%=q(bean.getTransferApiUrlPrefix() == null ? "https://transfer.api.globusonline.org/v0.10" : bean.getTransferApiUrlPrefix())%>,
+            value: <%=q(bean.getTransferApiUrlPrefix() == null ? "https://transfer.api.globusonline.org/v0.10" : bean.getTransferApiUrlPrefix())%>,
             allowBlank: false
         });
 
@@ -116,8 +116,8 @@
             padding: '10px 0 0 25px',
             disabled: <%=!canEdit%>,
             fieldLabel: "Transfer UI URL Prefix" + getFieldHoverText('Transfer UI URL Prefix', 'The prefix to the UI page where transfer requests can be made. (e.g., https://www.globus.org/app/transfer)'),
-            initialValue : <%=q(bean.getTransferUiUrlPrefix())%>,
-            value: <%=q(bean.getTransferUiUrlPrefix())%>,
+            initialValue : <%=q(bean.getTransferUiUrlPrefix() == null ? "https://www.globus.org/app/transfer" : bean.getTransferUiUrlPrefix())%>,
+            value: <%=q(bean.getTransferUiUrlPrefix() == null ? "https://www.globus.org/app/transfer" : bean.getTransferUiUrlPrefix())%>,
             allowBlank: true
         });
 
@@ -128,7 +128,7 @@
             padding: '10px 0 0 25px',
             disabled: <%=!canEdit%>,
             fieldLabel: "Browse Endpoint URL Prefix" + getFieldHoverText('Browse Endpoint URL Prefix', 'The prefix to the helper page where users can select endpoints (e.g., https://www.globus.org/app/browse-endpoint)'),
-            initialValue : <%=q(bean.getBrowseEndpointUrlPrefix())%>,
+            initialValue : <%=q(bean.getBrowseEndpointUrlPrefix() == null ? "https://www.globus.org/app/browse-endpoint" : bean.getBrowseEndpointUrlPrefix())%>,
             value: <%=q(bean.getBrowseEndpointUrlPrefix())%>,
             allowBlank: false
         });
