@@ -42,6 +42,9 @@ public abstract class OAuth2Authenticator
     private Container container;
     protected FileTransferSettings settings;
 
+    private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+    private static final JsonFactory JSON_FACTORY = new JacksonFactory();
+
     public OAuth2Authenticator(User user, Container container, String name)
     {
         this.user = user;
@@ -82,7 +85,7 @@ public abstract class OAuth2Authenticator
 
     public Credential getTokens(String authCode)
     {
-        AuthorizationCodeTokenRequest tokenRequest = new AuthorizationCodeTokenRequest(new NetHttpTransport(), new JacksonFactory(), new GenericUrl(getTokensUrlPrefix()), authCode);
+        AuthorizationCodeTokenRequest tokenRequest = new AuthorizationCodeTokenRequest(HTTP_TRANSPORT, JSON_FACTORY, new GenericUrl(getTokensUrlPrefix()), authCode);
         tokenRequest.setRedirectUri(getRedirectUri());
         tokenRequest.setClientAuthentication(getClientAuthentication());
 

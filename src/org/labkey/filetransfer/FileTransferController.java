@@ -33,6 +33,7 @@ import org.labkey.api.admin.AdminUrls;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.security.AdminConsoleAction;
 import org.labkey.api.security.CSRF;
+import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AbstractActionPermissionTest;
@@ -228,7 +229,7 @@ public class FileTransferController extends SpringActionController
      * made, choose a destination endpoint, or initiate a transfer of the selected files.
      */
     @CSRF
-    @RequiresPermission(ReadPermission.class)
+    @RequiresNoPermission
     public class TokensAction extends RedirectAction<AuthForm>
     {
         Boolean authorized = false;
@@ -237,7 +238,7 @@ public class FileTransferController extends SpringActionController
         @Override
         public URLHelper getSuccessURL(AuthForm authForm)
         {
-            ActionURL url = new ActionURL(PrepareAction.class, getContainer()).addParameter("authorized", authorized);
+            ActionURL url = new ActionURL(PrepareAction.class,  FileTransferManager.get().getContainer(getViewContext())).addParameter("authorized", authorized);
             if (errorCode != null)
                 url.addParameter("errorCode", errorCode.toString());
             String returnUrl = (String) getViewContext().getSession().getAttribute(FileTransferManager.RETURN_URL_SESSION_KEY);
@@ -266,7 +267,7 @@ public class FileTransferController extends SpringActionController
             }
             else if (form.getCode() != null)
             {
-                SecurePropertiesDataStore store = new SecurePropertiesDataStore(getUser(), getContainer());
+                SecurePropertiesDataStore store = new SecurePropertiesDataStore(getUser(), FileTransferManager.get().getContainer(getViewContext()));
 
                 FileTransferProvider provider = FileTransferManager.get().getProvider(getViewContext());
                 if (provider != null)
