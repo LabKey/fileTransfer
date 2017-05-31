@@ -30,6 +30,7 @@ import org.labkey.api.action.SimpleResponse;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.admin.AdminUrls;
+import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.security.AdminConsoleAction;
 import org.labkey.api.security.CSRF;
@@ -432,7 +433,16 @@ public class FileTransferController extends SpringActionController
             {
                 String returnUrl = (String) session.getAttribute(FileTransferManager.RETURN_URL_SESSION_KEY);
                 if (returnUrl == null)
-                    returnUrl = getContainer().getStartURL(getUser()).getLocalURIString();
+                {
+                    Container returnContainer = FileTransferManager.get().getContainer(getViewContext());
+                    if (returnContainer == null)
+                    {
+                        returnContainer = getContainer();
+                        if (returnContainer.isRoot())
+                            returnContainer = ContainerManager.getHomeContainer();
+                    }
+                    returnUrl = returnContainer.getStartURL(getUser()).getLocalURIString();
+                }
                 form.setReturnUrl(returnUrl);
             }
             return new TransferView(form);
