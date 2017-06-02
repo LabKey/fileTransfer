@@ -35,7 +35,8 @@
     else
     {
 %>
-No metadata list currently configured for this container. To set up, click the File Transfer drop-down and select "Customize" (available only to those with Site Administrator permissions).
+This web part is not properly configured. Use the drop-down in the web part header and select "Customize" to check that the metadata list is properly configured and that the directory for the files
+to be associated with this web part exists, is readable and is relative to the source endpoint's directory (available only to those with Administrator permissions).
 
 <%
     }

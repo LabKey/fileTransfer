@@ -16,33 +16,58 @@
 
 package org.labkey.filetransfer;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
-import org.labkey.api.data.PropertyManager;
+import org.labkey.api.data.DataRegionSelection;
+import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.Sort;
+import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.list.ListDefinition;
 import org.labkey.api.exp.list.ListService;
-import org.labkey.api.module.Module;
-import org.labkey.api.module.ModuleLoader;
-import org.labkey.api.util.PageFlowUtil;
-import org.labkey.api.webdav.WebdavResolver;
-import org.labkey.api.webdav.WebdavResolverImpl;
-import org.labkey.api.util.Path;
+import org.labkey.api.query.FieldKey;
+import org.labkey.api.view.Portal;
+import org.labkey.api.view.ViewContext;
+import org.labkey.filetransfer.config.FileTransferSettings;
+import org.labkey.filetransfer.model.TransferEndpoint;
+import org.labkey.filetransfer.provider.FileTransferProvider;
+import org.labkey.filetransfer.provider.Registry;
 
+import javax.servlet.http.HttpSession;
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.labkey.api.data.DataRegionSelection.DATA_REGION_SELECTION_KEY;
 
 public class FileTransferManager
 {
     private static final FileTransferManager _instance = new FileTransferManager();
-    public static final String FILE_TRANSFER_CONFIG_PROPERTIES = "fileTransferConfigProperties";
-    public static final String ENDPOINT_DIRECTORY = "endpointDirectory";
+    public static final String LOCAL_FILES_DIRECTORY = "localFilesDirectory";
     public static final String REFERENCE_FOLDER = "listFolder";
     public static final String REFERENCE_LIST = "listTable";
-    public static final String REFERENCE_COLUMN = "fileColumn";
+    public static final String REFERENCE_COLUMN = "fileNameColumn";
     public static final String SOURCE_ENDPOINT_DIRECTORY = "sourceEndpointDir";
+
+    public static final String WEB_PART_ID_SESSION_KEY = "fileTransferWebPartId";
+    public static final String FILE_TRANSFER_CONTAINER = "fileTransferContainer";
+    public static final String RETURN_URL_SESSION_KEY = "fileTransferReturnUrl";
+    public static final String FILE_TRANSFER_PROVIDER = "fileTransferProvider";
+    public static final String ENDPOINT_ID_SESSION_KEY = "destinationEndpointId";
+    public static final String ENDPOINT_PATH_SESSION_KEY = "destinationEndpointPath";
+
+    public enum ErrorCode
+    {
+        noProvider,
+        noTokens
+    }
 
     private FileTransferManager()
     {
@@ -54,39 +79,106 @@ public class FileTransferManager
         return _instance;
     }
 
-    public void saveFileTransferConfig(FileTransferConfigForm form, Container container)
+    public Boolean isMetadataListConfigured(Map<String, String> properties)
     {
-        String oldPath = getEndpointPath(container);
-
-        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
-        map.put(ENDPOINT_DIRECTORY, String.valueOf(form.getEndpointPath()));
-        map.put(REFERENCE_FOLDER, String.valueOf(form.getLookupContainer()));
-        map.put(REFERENCE_LIST, String.valueOf(form.getQueryName()));
-        map.put(REFERENCE_COLUMN, String.valueOf(form.getColumnName()));
-        map.put(SOURCE_ENDPOINT_DIRECTORY, form.getSourceEndpointDir() != null ? String.valueOf(form.getSourceEndpointDir()) : null);
-        map.save();
-
-        ContainerManager.ContainerPropertyChangeEvent evt = new ContainerManager.ContainerPropertyChangeEvent(
-                container, ContainerManager.Property.EndpointDirectory, oldPath, form.getEndpointPath());
-        ContainerManager.firePropertyChangeEvent(evt);
+        return properties != null && !properties.isEmpty();
     }
 
-    public PropertyManager.PropertyMap getFileTransferConfig(Container container)
+    public Container getContainer(ViewContext context)
     {
-        return PropertyManager.getProperties(container, FileTransferManager.FILE_TRANSFER_CONFIG_PROPERTIES);
+        String containerId = (String) context.getRequest().getSession().getAttribute(FILE_TRANSFER_CONTAINER);
+        if (containerId == null)
+            return null;
+        return ContainerManager.getForId(containerId);
     }
 
-    public Boolean isMetadataListConfigured(Container container)
+    private Map<String, String> getWebPartProperties(ViewContext context)
     {
-        return !getFileTransferConfig(container).isEmpty();
+        Integer webPartId = (Integer) context.getRequest().getSession().getAttribute(WEB_PART_ID_SESSION_KEY);
+        if (webPartId == null)
+            return Collections.emptyMap();
+        Container container = getContainer(context);
+        if (container == null)
+            return Collections.emptyMap();
+        Portal.WebPart webPart =  Portal.getPart(container, webPartId);
+        return webPart.getPropertyMap();
+    }
+
+    public FileTransferProvider getProvider(ViewContext context)
+    {
+        return getProvider(getWebPartProperties(context), context);
+    }
+
+    public FileTransferProvider getProvider(Map<String, String> properties)
+    {
+        return Registry.get().getProvider(properties.get(FILE_TRANSFER_PROVIDER));
+    }
+
+    public FileTransferProvider getProvider(Map<String, String> properties, ViewContext context)
+    {
+        return Registry.get().getProvider(context.getContainer(), context.getUser(), properties.get(FILE_TRANSFER_PROVIDER));
+    }
+
+    public TransferEndpoint getSourceEndpoint(Map<String, String> properties)
+    {
+        FileTransferProvider provider = getProvider(properties);
+        if (provider == null)
+            return null;
+
+        FileTransferSettings settings = provider.getSettings();
+        TransferEndpoint endpoint = settings.getEndpoint();
+        endpoint.setPath(properties.get(SOURCE_ENDPOINT_DIRECTORY));
+        return endpoint;
+    }
+
+    public TransferEndpoint getSourceEndpoint(ViewContext context)
+    {
+        return getSourceEndpoint(getWebPartProperties(context));
+    }
+
+    public List<String> getFileNames(ViewContext context)
+    {
+        HttpSession session = context.getSession();
+        Container sessionContainer = getContainer(context);
+        if (sessionContainer != null)
+            context.setContainer(getContainer(context));
+        String key = (String) session.getAttribute(DATA_REGION_SELECTION_KEY);
+        Map<String, String> properties = getWebPartProperties(context);
+        ListDefinition listDef = FileTransferManager.get().getMetadataList(properties);
+
+        if (listDef != null)
+        {
+            SimpleFilter filter;
+
+            Set<String> selectedVals = DataRegionSelection.getSelected(context, key, true, false);
+
+            // TODO create a helper method for inClause that compensates for the key type
+            if (listDef.getKeyType() == ListDefinition.KeyType.AutoIncrementInteger || listDef.getKeyType() == ListDefinition.KeyType.Integer)
+            {
+                Set<Integer> selectionIds = new HashSet<>();
+                for (String val : selectedVals)
+                {
+                    selectionIds.add(Integer.parseInt(val));
+                }
+                filter = new SimpleFilter(new SimpleFilter.InClause(FieldKey.fromParts(listDef.getKeyName()), selectionIds));
+            }
+            else
+                filter = new SimpleFilter(new SimpleFilter.InClause(FieldKey.fromParts(listDef.getKeyName()), selectedVals));
+            Sort sort = new Sort(FieldKey.fromParts(properties.get(REFERENCE_COLUMN)));
+            TableInfo tableInfo = listDef.getTable(context.getUser());
+            if (tableInfo != null)
+            {
+                TableSelector selector = new TableSelector(tableInfo, Collections.singleton(properties.get(REFERENCE_COLUMN)), filter, sort);
+                return selector.getArrayList(String.class);
+            }
+        }
+        return Collections.emptyList();
     }
 
     @Nullable
-    public ListDefinition getMetadataList(Container container)
+    public ListDefinition getMetadataList(Map<String, String> map)
     {
-        PropertyManager.PropertyMap map = FileTransferManager.get().getFileTransferConfig(container);
-
-        if (!map.isEmpty())
+        if (map != null && !map.isEmpty())
         {
             String listContainerId = map.get(REFERENCE_FOLDER);
             Container listContainer = ContainerManager.getForId(listContainerId);
@@ -99,92 +191,70 @@ public class FileTransferManager
         return null;
     }
 
-    public String getFileNameColumn(Container container)
+    public TransferEndpoint getDestinationEndpoint(ViewContext context) throws IOException, URISyntaxException
     {
-        PropertyManager.PropertyMap map = FileTransferManager.get().getFileTransferConfig(container);
-        if (!map.isEmpty())
+        String id = (String) context.getSession().getAttribute(ENDPOINT_ID_SESSION_KEY);
+        String path = (String) context.getSession().getAttribute(ENDPOINT_PATH_SESSION_KEY);
+        TransferEndpoint endpoint = null;
+        if (id != null && path != null)
         {
-            return map.get(REFERENCE_COLUMN);
+            FileTransferProvider provider = getProvider(context);
+            endpoint = provider.getEndpoint(id);
+
+            if (endpoint != null)
+            {
+                endpoint.setPath((String) context.getSession().getAttribute(ENDPOINT_PATH_SESSION_KEY));
+            }
+
         }
-        return null;
+        return endpoint;
     }
 
-    public String getEndpointPath(Container container)
-    {
-        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
-        return map.get(ENDPOINT_DIRECTORY);
-    }
-
-    public String getSourceEndpointDir(Container container)
-    {
-        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(container, FILE_TRANSFER_CONFIG_PROPERTIES, true);
-        return map.get(SOURCE_ENDPOINT_DIRECTORY);
-    }
-
-    public WebdavResolver.LookupResult getDavResource(Container container)
-    {
-        Path path =  getDavPath(container);
-        return WebdavResolverImpl.get().lookupEx(path);
-    }
-
-    public Path getDavPath(Container container)
-    {
-        return new Path("_webdav").append(container.getParsedPath()).append(FileTransferWebdavProvider.FILE_LINK);
-    }
-
-    public List<String> getActiveFiles(Container container)
+    public List<String> getActiveFiles(File localDir)
     {
         List<String> activeFiles = new ArrayList<>();
-        WebdavResolver.LookupResult lookupResult = FileTransferManager.get().getDavResource(container);
-        if (lookupResult != null && lookupResult.resource != null && lookupResult.resource instanceof FileTransferWebdavProvider.FileTransferFolderResource)
+        if (localDir != null)
         {
-            FileTransferWebdavProvider.FileTransferFolderResource fileResources = (FileTransferWebdavProvider.FileTransferFolderResource) lookupResult.resource;
-            File fileDirectory = fileResources.getFile();
-            if (fileDirectory != null)
+            File[] directoryFiles = localDir.listFiles();
+            if (directoryFiles != null)
             {
-                File[] files = fileDirectory.listFiles();
-                if (files != null)
+                for (File file : directoryFiles)
                 {
-                    for (File file : files)
-                    {
-                        if (file.isFile())
-                            activeFiles.add(file.getName());
-                    }
+                    activeFiles.add(file.getName());
                 }
             }
         }
         return activeFiles;
     }
 
-    public String getServiceBaseUrl(Container container)
+    public boolean isValidTransferDirectory(Map<String, String> properties)
     {
-        Module module = ModuleLoader.getInstance().getModule(FileTransferModule.NAME);
-        return module.getModuleProperties().get(FileTransferModule.FILE_TRANSFER_SERVICE_BASE_URL).getEffectiveValue(container);
+        File webPartFileDirectory = getLocalFilesDirectory(properties);
+        if (webPartFileDirectory == null)
+            return false;
+        FileTransferProvider provider = getProvider(properties);
+        if (provider == null || provider.getSettings() == null)
+            return false;
+        TransferEndpoint endpoint = provider.getSettings().getEndpoint();
+        if (endpoint == null)
+            return false;
+        if (endpoint.getLocalDirectory() == null)
+            return false;
+        File rootDir = new File(endpoint.getLocalDirectory());
+
+        if (!webPartFileDirectory.toPath().normalize().startsWith(rootDir.toPath().normalize()))
+            return false;
+        return webPartFileDirectory.exists() && webPartFileDirectory.canRead();
     }
 
-    public String getSourceEndpointId(Container container)
+    public File getLocalFilesDirectory(Map<String, String> properties)
     {
-        Module module = ModuleLoader.getInstance().getModule(FileTransferModule.NAME);
-        return module.getModuleProperties().get(FileTransferModule.FILE_TRANSFER_SOURCE_ENDPOINT_ID).getEffectiveValue(container);
-    }
-
-    public String getGlobusGenomicsTransferUrl(Container container)
-    {
-        String baseUrl = getServiceBaseUrl(container);
-        String endpointId = getSourceEndpointId(container);
-        if (StringUtils.isNotBlank(baseUrl) && StringUtils.isNotBlank(endpointId))
-        {
-            // ex: https://www.globus.org/app/transfer?origin_id=<ENDPOINT_ID>&origin_path=<ENDPOINT_DIR>
-            String transferUrl = baseUrl.trim() + (!baseUrl.trim().endsWith("?") ? "?" : "")
-                    + "origin_id=" + PageFlowUtil.encode(endpointId.trim());
-
-            String endpointDir = getSourceEndpointDir(container);
-            if (StringUtils.isNotBlank(endpointDir))
-                transferUrl += "&origin_path=" + PageFlowUtil.encode(endpointDir.trim());
-
-            return transferUrl;
-        }
-
-        return null;
+        FileTransferProvider provider = getProvider(properties);
+        if (provider == null || properties.get(LOCAL_FILES_DIRECTORY) == null || provider.getSettings() == null)
+            return null;
+        TransferEndpoint endpoint = provider.getSettings().getEndpoint();
+        if (endpoint == null)
+            return null;
+        return new File(endpoint.getLocalDirectory(), properties.get(LOCAL_FILES_DIRECTORY));
     }
 }

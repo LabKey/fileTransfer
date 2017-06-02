@@ -11,11 +11,12 @@ import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.QuerySchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.view.Portal;
 import org.labkey.filetransfer.FileTransferManager;
 import org.labkey.filetransfer.FileTransferModule;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -49,11 +50,16 @@ public class FileTransferQuerySchema extends UserSchema
     @Override
     public TableInfo createTable(String name)
     {
-        if (name.equals(FILE_METADATA_TABLE_NAME))
+        if (name.startsWith(FILE_METADATA_TABLE_NAME))
         {
-            List<String> activeFiles = FileTransferManager.get().getActiveFiles(getContainer());
-            ListDefinition listDef = FileTransferManager.get().getMetadataList(getContainer());
-            return listDef == null ? null : new FileTransferMetadataTable(listDef.getTable(getUser()), activeFiles, this);
+            String[] parts = name.split("_");
+            if (parts.length > 1)
+            {
+                Portal.WebPart webPart = Portal.getPart(getContainer(), Integer.parseInt(parts[1]));
+                Map<String, String> properties = webPart.getPropertyMap();
+                ListDefinition listDef = FileTransferManager.get().getMetadataList(properties);
+                return listDef == null ? null : new FileTransferMetadataTable(properties, listDef.getTable(getUser()), this);
+            }
         }
         return null;
     }
@@ -61,6 +67,6 @@ public class FileTransferQuerySchema extends UserSchema
     @Override
     public Set<String> getTableNames()
     {
-        return Collections.singleton(FILE_METADATA_TABLE_NAME);
+        return Collections.emptySet();
     }
 }

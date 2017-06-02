@@ -1,0 +1,4 @@
+dependencies
+{
+    external 'com.google.oauth-client:google-oauth-client:1.22.0'
+}

@@ -19,12 +19,13 @@ package org.labkey.filetransfer;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
-import org.labkey.api.module.ModuleProperty;
-import org.labkey.api.view.SimpleWebPartFactory;
+import org.labkey.api.security.permissions.AdminPermission;
+import org.labkey.api.settings.AdminConsole;
 import org.labkey.api.view.WebPartFactory;
-import org.labkey.api.webdav.WebdavService;
+import org.labkey.filetransfer.globus.GlobusFileTransferProvider;
+import org.labkey.filetransfer.provider.Registry;
 import org.labkey.filetransfer.query.FileTransferQuerySchema;
-import org.labkey.filetransfer.view.FileTransferMetadataView;
+import org.labkey.filetransfer.view.FileTransferMetadataWebPartFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,8 +36,6 @@ public class FileTransferModule extends DefaultModule
 {
     public static final String NAME = "FileTransfer";
     public static final String SCHEMA_NAME = "fileTransfer";
-    public static final String FILE_TRANSFER_SERVICE_BASE_URL = "FileTransferServiceBaseUrl";
-    public static final String FILE_TRANSFER_SOURCE_ENDPOINT_ID = "FileTransferSourceEndpointId";
 
     @Override
     public String getName()
@@ -55,7 +54,7 @@ public class FileTransferModule extends DefaultModule
     protected Collection<WebPartFactory> createWebPartFactories()
     {
         ArrayList<WebPartFactory> list = new ArrayList<>();
-        SimpleWebPartFactory factory = new SimpleWebPartFactory("File Transfer Metadata", WebPartFactory.LOCATION_BODY, FileTransferMetadataView.class, null);
+        FileTransferMetadataWebPartFactory factory = new FileTransferMetadataWebPartFactory();
         list.add(factory);
         return list;
     }
@@ -66,23 +65,16 @@ public class FileTransferModule extends DefaultModule
         return false;
     }
 
+    public static void registerAdminConsoleLinks()
+    {
+        AdminConsole.addLink(AdminConsole.SettingsLinkType.Configuration, "File Transfer", FileTransferController.getComplianceSettingsURL(), AdminPermission.class);
+    }
+
     @Override
     protected void doStartup(ModuleContext moduleContext)
     {
-        ModuleProperty serviceBaseUrlProp = new ModuleProperty(this, FILE_TRANSFER_SERVICE_BASE_URL);
-        serviceBaseUrlProp.setLabel("Service Base URL");
-        serviceBaseUrlProp.setDescription("Field for storing the base URL for the file transfer service. Example: https://www.globus.org/app/transfer.");
-        serviceBaseUrlProp.setCanSetPerContainer(true);
-        serviceBaseUrlProp.setShowDescriptionInline(true);
-        serviceBaseUrlProp.setInputFieldWidth(600);
-        this.addModuleProperty(serviceBaseUrlProp);
-
-        ModuleProperty sourceEndpointIdProp = new ModuleProperty(this, FILE_TRANSFER_SOURCE_ENDPOINT_ID);
-        sourceEndpointIdProp.setLabel("Source Endpoint ID");
-        sourceEndpointIdProp.setDescription("Field for storing the unique identifier of the source endpoint.");
-        sourceEndpointIdProp.setCanSetPerContainer(true);
-        sourceEndpointIdProp.setShowDescriptionInline(true);
-        this.addModuleProperty(sourceEndpointIdProp);
+        registerAdminConsoleLinks();
+        Registry.registerProvider(GlobusFileTransferProvider.NAME, GlobusFileTransferProvider.class);
     }
 
     @Override
@@ -90,7 +82,6 @@ public class FileTransferModule extends DefaultModule
     {
         addController(FileTransferController.NAME, FileTransferController.class);
 
-        WebdavService.get().addProvider(new FileTransferWebdavProvider());
         FileTransferQuerySchema.register(this);
     }
 
