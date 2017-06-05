@@ -124,7 +124,7 @@ public class FileTransferTest extends BaseWebDriverTest
         CustomizeFileTransferPage customizeFileTransferPage = new CustomizeFileTransferPage(this);
 
         String errorMsg = customizeFileTransferPage.getErrorMessage();
-//        assertTrue("Error message did not contain expected text: '" + EXPECTED_ERROR_MSG + "'.", errorMsg.toLowerCase().contains(EXPECTED_ERROR_MSG));
+        assertTrue("Error message did not contain expected text: '" + EXPECTED_ERROR_MSG + "'.", errorMsg.toLowerCase().contains(EXPECTED_ERROR_MSG));
 
         log("Set the File Transfer Configuration values.");
         FileTransferConfigurationPage ftConfigPageAdmin = FileTransferConfigurationPage.beginAt(this);
