@@ -537,9 +537,10 @@ public class FileTransferController extends SpringActionController
                 controller.new AuthAction()
             );
 
+            // @AdminConsoleAction
             // @RequiresPermission(AdminOperationsPermission.class)
-            assertForAdminOperationsPermission(user,
-                controller.new ConfigurationAction()
+            assertForAdminPermission(ContainerManager.getRoot(), user,
+                    controller.new ConfigurationAction()
             );
         }
     }
