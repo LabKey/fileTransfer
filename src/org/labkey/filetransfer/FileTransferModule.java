@@ -67,7 +67,7 @@ public class FileTransferModule extends DefaultModule
 
     public static void registerAdminConsoleLinks()
     {
-        AdminConsole.addLink(AdminConsole.SettingsLinkType.Configuration, "File Transfer", FileTransferController.getComplianceSettingsURL(), AdminPermission.class);
+        AdminConsole.addLink(AdminConsole.SettingsLinkType.Premium, "File Transfer", FileTransferController.getComplianceSettingsURL(), AdminPermission.class);
     }
 
     @Override
