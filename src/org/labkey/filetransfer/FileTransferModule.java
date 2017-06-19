@@ -17,7 +17,7 @@
 package org.labkey.filetransfer;
 
 import org.jetbrains.annotations.NotNull;
-import org.labkey.api.module.DefaultModule;
+import org.labkey.api.module.CodeOnlyModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.settings.AdminConsole;
@@ -27,15 +27,13 @@ import org.labkey.filetransfer.provider.Registry;
 import org.labkey.filetransfer.query.FileTransferQuerySchema;
 import org.labkey.filetransfer.view.FileTransferMetadataWebPartFactory;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
-public class FileTransferModule extends DefaultModule
+public class FileTransferModule extends CodeOnlyModule
 {
-    public static final String NAME = "FileTransfer";
-    public static final String SCHEMA_NAME = "fileTransfer";
+    private static final String NAME = "FileTransfer";
 
     @Override
     public String getName()
@@ -44,28 +42,13 @@ public class FileTransferModule extends DefaultModule
     }
 
     @Override
-    public double getVersion()
-    {
-        return 17.10;
-    }
-
-    @Override
     @NotNull
     protected Collection<WebPartFactory> createWebPartFactories()
     {
-        ArrayList<WebPartFactory> list = new ArrayList<>();
-        FileTransferMetadataWebPartFactory factory = new FileTransferMetadataWebPartFactory();
-        list.add(factory);
-        return list;
+        return Collections.singleton(new FileTransferMetadataWebPartFactory());
     }
 
-    @Override
-    public boolean hasScripts()
-    {
-        return false;
-    }
-
-    public static void registerAdminConsoleLinks()
+    private void registerAdminConsoleLinks()
     {
         AdminConsole.addLink(AdminConsole.SettingsLinkType.Premium, "File Transfer", FileTransferController.getComplianceSettingsURL(), AdminPermission.class);
     }
@@ -83,13 +66,6 @@ public class FileTransferModule extends DefaultModule
         addController(FileTransferController.NAME, FileTransferController.class);
 
         FileTransferQuerySchema.register(this);
-    }
-
-    @Override
-    @NotNull
-    public Set<String> getSchemaNames()
-    {
-        return Collections.singleton(SCHEMA_NAME);
     }
 
     @Override
