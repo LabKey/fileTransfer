@@ -2,13 +2,13 @@ package org.labkey.filetransfer.query;
 
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
-import org.labkey.api.data.DbSchema;
-import org.labkey.api.data.DbSchemaType;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.list.ListDefinition;
 import org.labkey.api.module.Module;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.QuerySchema;
+import org.labkey.api.query.QueryService;
+import org.labkey.api.query.SchemaKey;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.view.Portal;
@@ -31,7 +31,7 @@ public class FileTransferQuerySchema extends UserSchema
 
     public FileTransferQuerySchema(User user, Container container)
     {
-        super(NAME, DESCRIPTION, user, container, DbSchema.get(NAME, DbSchemaType.Module));
+        super(NAME, DESCRIPTION, user, container, QueryService.get().getUserSchema(user, container, SchemaKey.fromParts("lists")).getDbSchema());
     }
 
     public static void register(final FileTransferModule module)
