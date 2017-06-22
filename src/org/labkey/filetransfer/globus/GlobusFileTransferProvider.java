@@ -150,9 +150,9 @@ public class GlobusFileTransferProvider extends FileTransferProvider
                 settings.getClientSecret() != null &&
                 settings.getAuthUrlPrefix() != null &&
                 settings.getTransferApiUrlPrefix() != null &&
-                settings.getBrowseEndpointUrlPrefix() != null
-//              &&  !settings.getEndpoints().isEmpty()
- ;
+                settings.getBrowseEndpointUrlPrefix() != null &&
+                settings.getEndpoint() != null &&
+                !StringUtils.isEmpty(settings.getEndpoint().getId());
     }
 
     private Object makeApiGetRequest(URI uri, Class clazz) throws IOException

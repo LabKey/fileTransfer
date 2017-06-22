@@ -105,9 +105,9 @@ public class FileTransferController extends SpringActionController
             if (form.getSourceEndpointLocalDir() != null)
             {
                 if (!file.isDirectory())
-                    errors.rejectValue("rootDir", ERROR_MSG, "Directory '" + form.getSourceEndpointLocalDir() + "' does not exist");
-                else if (!file.canWrite())
-                    errors.rejectValue("rootDir", ERROR_MSG, "Directory '" + form.getSourceEndpointLocalDir() + "' is not writable");
+                    errors.rejectValue("sourceEndpointLocalDir", ERROR_MSG, "Directory '" + form.getSourceEndpointLocalDir() + "' does not exist");
+                else if (!file.canRead())
+                    errors.rejectValue("sourceEndpointLocalDir", ERROR_MSG, "Directory '" + form.getSourceEndpointLocalDir() + "' is not readable");
             }
         }
 

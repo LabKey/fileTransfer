@@ -15,6 +15,7 @@
  */
 package org.labkey.filetransfer.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.settings.AbstractWriteableSettingsGroup;
@@ -109,7 +110,10 @@ public class FileTransferSettings extends AbstractWriteableSettingsGroup
         String endpointId = getRawPropertyValue(SOURCE_ENDPOINT_ID);
         String name = getRawPropertyValue(SOURCE_ENDPOINT_NAME);
         TransferEndpoint endpoint= new TransferEndpoint(endpointId, null);
-        endpoint.setDisplayName(name);
+        // We set the display name to the endpointId if a name was not provided.
+        // Though it might be nice to retrieve the name of the endpoint from Globus, we don't
+        // necessarily have credentials for queries at this point.
+        endpoint.setDisplayName(StringUtils.isEmpty(name) ? endpointId : name);
         endpoint.setLocalDirectory(getRawPropertyValue(SOURCE_ENDPOINT_LOCAL_FILE_ROOT));
         return endpoint;
     }
