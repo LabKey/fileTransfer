@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
+import org.labkey.test.Locators;
 import org.labkey.test.SortDirection;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
@@ -43,6 +44,7 @@ import static org.junit.Assert.assertTrue;
 @Category({Git.class})
 public class FileTransferTest extends BaseWebDriverTest
 {
+    {setIsBootstrapWhitelisted(true);}
     private static final String STUDY_A = "StudyA";
     private static final String STUDY_B = "StudyB";
     private static final String STUDY_A_FOLDER = STUDY_A + "Folder";
@@ -289,7 +291,7 @@ public class FileTransferTest extends BaseWebDriverTest
         portalHelper.addWebPart("File Transfer");
 
         log("Verify web part message without existing configuration");
-        waitForElement(Locator.tagContainingText("span", CUSTOMIZE_FILE_TRANSFER_TITLE));
+        waitForElement(Locators.bodyTitle(CUSTOMIZE_FILE_TRANSFER_TITLE));
     }
 
     private DataRegionTable getFileDataRegion(String regionName)
