@@ -1,4 +1,5 @@
 {table}
 Filename|Component|Version|Source|License|LabKey Dev|Purpose
 google-oauth-client-1.22.0.jar|Google OAuth Client Library|1.22.0|{link:Google|https://developers.google.com/api-client-library/java/google-oauth-java-client/download}|{link:Creative Commons 3.0|https://creativecommons.org/licenses/by/3.0/}|susanh|OAuth library
+google-http-client-jackson2-1.19.0.jar|Google API Client Library|1.19.0|{link:Google|https://developers.google.com/api-client-library/java/google-api-java-client/setup#google-api-client-jackson2}|{link:Apache 2.0|http://www.apache.org/licenses/LICENSE-2.0.txt}|susanh|Jackson 2 Extensions To The Google HTTP Client Library For Java
 {table}
