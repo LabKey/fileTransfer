@@ -1,5 +1,5 @@
 dependencies
 {
-    external 'com.google.oauth-client:google-oauth-client:1.22.0'
-    external 'com.google.http-client:google-http-client-jackson2:1.19.0'
+    external "com.google.oauth-client:google-oauth-client:${googleOauthClientVersion}"
+    external "com.google.http-client:google-http-client-jackson2:${googleHttpClientVersion}"
 }
