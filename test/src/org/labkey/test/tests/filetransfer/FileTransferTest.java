@@ -44,7 +44,6 @@ import static org.junit.Assert.assertTrue;
 @Category({Git.class})
 public class FileTransferTest extends BaseWebDriverTest
 {
-    {setIsBootstrapWhitelisted(true);}
     private static final String STUDY_A = "StudyA";
     private static final String STUDY_B = "StudyB";
     private static final String STUDY_A_FOLDER = STUDY_A + "Folder";
