@@ -32,12 +32,24 @@
     public void addClientDependencies(ClientDependencies dependencies)
     {
         dependencies.add("Ext4");
+        dependencies.add("tsstatic/css/filetransfermodule.css");
     }
 %>
 <%
-    JspView<TransferBean>  me = (JspView<TransferBean>) JspView.currentView();
+    JspView<TransferBean> me = (JspView<TransferBean>) JspView.currentView();
     TransferBean bean = me.getModelBean();
     String returnUrl = bean.getReturnUrl();
+
+    /*
+    * FTM streamline: If the user hasn't selected a destination, use the default one we got earlier.
+    * We have to use bean.setDestination() instead of just pulling the value directly, because other
+    * parts of this module use bean.getDestination() and they'll throw null pointers otherwise.
+    * */
+    if(bean.getDestination() == null)
+    {
+        bean.setDestination(FileTransferManager.get().getDefaultDestinationEndpoint());
+    }
+
     Boolean transferEnabled = bean.getAuthorized() && bean.getSource() != null && bean.getDestination() != null && bean.getTransferResultMsg() == null;
     String notifyMsg = "";
     if (bean.getErrorCode() == FileTransferManager.ErrorCode.noProvider)
@@ -63,8 +75,7 @@
     {
 %>
 <script type="text/javascript">
-    function makeTransferRequest()
-    {
+    function makeTransferRequest() {
         Ext4.Ajax.request({
             url: <%=q(transferUrl.getLocalURIString())%>,
             method: 'POST',
@@ -80,27 +91,26 @@
                 if (jsonResp) {
                     if (jsonResp.success) {
                         Ext4.Msg.show({
-                                    title: 'Transfer Request ' + <%=q(bean.getLabel() == null ? "" : "\"" + bean.getLabel() + "\"")%> + ' Made',
-                                    msg: jsonResp.data['message'] + '.  Check the <%=h(bean.getProviderName())%> website for status information<%= h(!StringUtils.isEmpty(bean.getLabel()) ? " for the transfer labeled '" + bean.getLabel() + "'" : "")%>.',
-                                    icon: Ext4.window.MessageBox.INFO,
-                                    buttonText: {
-                                        ok: 'OK',
-                                        cancel: "BACK"
-                                    },
-                                    fn: function(btn, text){
-                                        if (btn === 'cancel')
-                                           window.location = <%=q(returnUrl)%>;
-                                        else if (btn === 'ok')
-                                            Ext4.get('transferBtn').dom.className = " labkey-disabled-button"
-                                    },
-                                    buttons: Ext4.Msg.OKCANCEL
+                            title: 'Transfer Request ' + <%=q(bean.getLabel() == null ? "" : "\"" + bean.getLabel() + "\"")%> +' Made',
+                            msg: jsonResp.data['message'] + '.  Check the <%=h(bean.getProviderName())%> website for status information<%= h(!StringUtils.isEmpty(bean.getLabel()) ? " for the transfer labeled '" + bean.getLabel() + "'" : "")%>.',
+                            icon: Ext4.window.MessageBox.INFO,
+                            buttonText: {
+                                ok: 'OK',
+                                cancel: "BACK"
+                            },
+                            fn: function (btn, text) {
+                                if (btn === 'cancel')
+                                    window.location = <%=q(returnUrl)%>;
+                                else if (btn === 'ok')
+                                    Ext4.get('transferBtn').dom.className = " labkey-disabled-button"
+                            },
+                            buttons: Ext4.Msg.OKCANCEL
                         });
                     }
                     else {
                         var errorHTML = jsonResp.message;
                         Ext4.Msg.alert('Error', errorHTML);
                     }
-
                 }
             },
             failure: function (response) {
@@ -118,57 +128,65 @@
     }
 %>
 
-<h2><%= h(bean.getProviderName() == null ? "" : bean.getProviderName() ) %> File Transfer</h2>
+<h2><%= h(bean.getProviderName() == null ? "" : bean.getProviderName()) %> File Transfer</h2>
 
 <br>
 
 <span class="labkey-fileTransfer-notification" id="notification"><%=h(notifyMsg)%></span>
 <%
-    if (notifyMsg.isEmpty())
+
+    boolean isEmpty = notifyMsg.isEmpty();
+    if (isEmpty)
     {
 %>
-Preparing to transfer the following files from directory <%= h(bean.getSource().getPath()) %> on source endpoint '<%= h(bean.getSource().getDisplayName()) %>'.
-<ul>
-    <%
-        for (String filename : bean.getFileNames())
-        {
-    %>
-    <li><%=h(filename)%></li>
-    <%
-        }
-    %>
-</ul>
+        You are about to transfer the following files from directory <b><%= h(bean.getSource().getPath()) %></b> on source endpoint <b>'<%= h(bean.getSource().getDisplayName()) %>'</b>.
+        <ul>
+            <%
+                for (String filename : bean.getFileNames())
+                {
+            %>
+            <li><%=h(filename)%></li>
+            <%
+                }
+            %>
+        </ul>
 <%
         if (bean.getDestination() == null)
         {
 %>
-Select destination endpoint.
+            First, <a class='labkey-text-link' href = '<%=h(browseEndpointsUrl)%>'>select an endpoint</a> to transfer these files to.  You will probably want to choose your own endpoint, or one belonging to your institution.
 <%
         }
         else
         {
 %>
-Click the 'Transfer' button below to initiate the transfer
-<%= h(!StringUtils.isEmpty(bean.getLabel()) ? "using label '" + bean.getLabel() + "'" : "") %>
-to directory <%=h(bean.getDestination().getPath())%> on destination endpoint '<%=h(bean.getDestination().getDisplayName())%>'
-<br>
-<b>OR</b> select a different destination endpoint.
+            These files will be downloaded to the endpoint <b>'<%=h(bean.getDestination().getDisplayName())%>'</b>.
+            <br>
+            Click "Transfer" to start the download, or <a class='labkey-text-link' href = '<%=h(browseEndpointsUrl)%>'>select a different download endpoint</a>.
 <%
         }
-        out.write(PageFlowUtil.button("Browse").href(browseEndpointsUrl).toString());
+
 %>
 <br><br>
 <%
-        Button.ButtonBuilder builder=PageFlowUtil.button("Transfer");
-        builder.enabled(transferEnabled);
-        builder.id("transferBtn");
-        if (transferEnabled)
-        {
-            builder.onClick("makeTransferRequest(); return false;");
-        }
-        out.write(builder.toString());
+    out.write(PageFlowUtil.button(cancelText).href(returnUrl).toString());
+    Button.ButtonBuilder builder = PageFlowUtil.button("Transfer");
+    builder.addClass("ftm-bope-transfer-button");
+    builder.enabled(transferEnabled);
+    builder.id("transferBtn");
+    if (transferEnabled)
+    {
+        builder.onClick("makeTransferRequest(); return false;");
+    }
+    out.write(builder.toString());
 %>
 <%
     }
+
+    if (!isEmpty)
+    {
     out.write(PageFlowUtil.button(cancelText).href(returnUrl).toString());
+    }
+
+
 %>

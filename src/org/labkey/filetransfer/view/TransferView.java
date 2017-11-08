@@ -15,6 +15,7 @@
  */
 package org.labkey.filetransfer.view;
 
+import org.apache.log4j.Logger;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.ViewContext;
 import org.labkey.filetransfer.FileTransferController;
@@ -31,16 +32,16 @@ import java.net.URISyntaxException;
  */
 public class TransferView extends JspView<TransferBean>
 {
+    private static final Logger LOG = Logger.getLogger(FileTransferManager.class);
 
     public TransferView(FileTransferController.PrepareTransferForm form) throws IOException, URISyntaxException
     {
         super ("/org/labkey/filetransfer/view/fileTransfer.jsp");
 
+
         ViewContext context = getViewContext();
         FileTransferManager manager = FileTransferManager.get();
-
         FileTransferProvider provider = manager.getProvider(context);
-
         TransferBean bean = new TransferBean();
 
         bean.setSource(FileTransferManager.get().getSourceEndpoint(context));
