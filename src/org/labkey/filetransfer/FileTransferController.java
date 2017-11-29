@@ -19,6 +19,15 @@ package org.labkey.filetransfer;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.FormViewAction;
@@ -74,6 +83,7 @@ public class FileTransferController extends SpringActionController
 {
     private static final DefaultActionResolver _actionResolver = new DefaultActionResolver(FileTransferController.class);
     public static final String NAME = "filetransfer";
+    private static final Logger LOG = Logger.getLogger(FileTransferController.class);
 
     public FileTransferController()
     {
@@ -183,8 +193,20 @@ public class FileTransferController extends SpringActionController
             session.setAttribute(FileTransferManager.WEB_PART_ID_SESSION_KEY, form.getWebPartId());
             session.setAttribute(FileTransferManager.RETURN_URL_SESSION_KEY, form.getReturnUrl());
             FileTransferProvider provider = FileTransferManager.get().getProvider(getViewContext());
+
+            // optional env variable to toggle whether to call Globus
+            // set to 'true' or 'false'
+            // ENDPOINT_ENABLE
+            if( false )
+            {
+                errors.reject("ENDPOINT_ENABLE is set to false. Request will not be sent.");
+                return null;
+            }
+
+
             if (provider != null)
             {
+
                 OAuth2Authenticator authenticator = provider.getAuthenticator(getContainer(), getUser());
                 throw new RedirectException(authenticator.getAuthorizationUrl());
             }
@@ -285,6 +307,15 @@ public class FileTransferController extends SpringActionController
                     {
                         store.set(store.getId(), new StoredCredential(c));
                         this.authorized = true;
+
+
+                        //FTM streamline
+                        //TODO: consider using GlobusFileTransferProvider.makeApiGetRequest() instead?
+                        setupDefaultEndpoint(c);
+
+
+
+
                         return true;
                     }
                 }
@@ -297,6 +328,59 @@ public class FileTransferController extends SpringActionController
         @Override
         public void validateCommand(AuthForm target, Errors errors)
         {
+        }
+    }
+
+    /**
+    * FTM streamline: send a call to globus API asking for all endpoints belonging to the authenticated user.
+    * Take the first response and set it as the default endpoint, so first-time users don't have to bounce back to globus.
+    * Also use the default path (/~/) for the same reason.
+    * Users still have the option of selecting a different destination manually, which will override these settings.
+    * */
+    private void setupDefaultEndpoint(Credential c) throws Exception
+    {
+
+        String searchUri = "https://www.globus.org/service/transfer/v0.10/" /*TODO:genericize!*/ + "/endpoint_search?filter_scope=my-endpoints";
+        try (CloseableHttpClient httpClient = HttpClients.createDefault())
+        {
+            HttpGet httpGet = new HttpGet(searchUri);
+            httpGet.setHeader("Authorization", "Bearer " + c.getAccessToken());
+
+            //httpPost.setEntity(new StringEntity(JSONObject.valueToString(transferObject), ContentType.APPLICATION_JSON));
+
+            try (CloseableHttpResponse response = httpClient.execute(httpGet))
+            {
+                ResponseHandler<String> handler = new BasicResponseHandler();
+                //StatusLine status = response.getStatusLine();
+                String contents = handler.handleResponse(response);
+                                /*ObjectMapper mapper = new ObjectMapper();
+                                return mapper.readValue(contents, TransferResult.class);*/
+
+                JSONObject jsonObject = new JSONObject(contents);
+                Object data = jsonObject.get("DATA");
+                JSONArray endpoints;
+                if(data != null)
+                {
+                    endpoints = (JSONArray) data;
+                    if(endpoints.length() > 0)
+                    {
+                        JSONObject firstEndpoint = endpoints.getJSONObject(0);
+                        String endpointId = firstEndpoint.getString("id");
+                        String displayName = firstEndpoint.getString("display_name");
+                        TransferEndpoint endpoint = new TransferEndpoint(endpointId, "/~/");
+                        if(displayName != null && displayName.length() > 0)
+                        {
+                            endpoint.setDisplayName(displayName);
+                        }
+
+                        FileTransferManager.get().setDefaultDestinationEndpoint(endpoint);
+                    }
+                }
+            }
+        }
+        catch(Exception e)
+        {
+            LOG.error("Unable to get default endpoint: ", e);
         }
     }
 
