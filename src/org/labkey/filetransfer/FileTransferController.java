@@ -19,15 +19,7 @@ package org.labkey.filetransfer;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.FormViewAction;
@@ -305,13 +297,14 @@ public class FileTransferController extends SpringActionController
                     }
                     else
                     {
-                        store.set(store.getId(), new StoredCredential(c));
+                        StoredCredential sc = new StoredCredential(c);
+                        store.set(store.getId(), sc);
                         this.authorized = true;
 
 
                         //FTM streamline
-                        //TODO: consider using GlobusFileTransferProvider.makeApiGetRequest() instead?
-                        setupDefaultEndpoint(c);
+                        provider.setCredential(sc);
+                        ((GlobusFileTransferProvider) provider).setupDefaultEndpoint(); 
 
 
 
@@ -331,58 +324,7 @@ public class FileTransferController extends SpringActionController
         }
     }
 
-    /**
-    * FTM streamline: send a call to globus API asking for all endpoints belonging to the authenticated user.
-    * Take the first response and set it as the default endpoint, so first-time users don't have to bounce back to globus.
-    * Also use the default path (/~/) for the same reason.
-    * Users still have the option of selecting a different destination manually, which will override these settings.
-    * */
-    private void setupDefaultEndpoint(Credential c) throws Exception
-    {
 
-        String searchUri = "https://www.globus.org/service/transfer/v0.10/" /*TODO:genericize!*/ + "/endpoint_search?filter_scope=my-endpoints";
-        try (CloseableHttpClient httpClient = HttpClients.createDefault())
-        {
-            HttpGet httpGet = new HttpGet(searchUri);
-            httpGet.setHeader("Authorization", "Bearer " + c.getAccessToken());
-
-            //httpPost.setEntity(new StringEntity(JSONObject.valueToString(transferObject), ContentType.APPLICATION_JSON));
-
-            try (CloseableHttpResponse response = httpClient.execute(httpGet))
-            {
-                ResponseHandler<String> handler = new BasicResponseHandler();
-                //StatusLine status = response.getStatusLine();
-                String contents = handler.handleResponse(response);
-                                /*ObjectMapper mapper = new ObjectMapper();
-                                return mapper.readValue(contents, TransferResult.class);*/
-
-                JSONObject jsonObject = new JSONObject(contents);
-                Object data = jsonObject.get("DATA");
-                JSONArray endpoints;
-                if(data != null)
-                {
-                    endpoints = (JSONArray) data;
-                    if(endpoints.length() > 0)
-                    {
-                        JSONObject firstEndpoint = endpoints.getJSONObject(0);
-                        String endpointId = firstEndpoint.getString("id");
-                        String displayName = firstEndpoint.getString("display_name");
-                        TransferEndpoint endpoint = new TransferEndpoint(endpointId, "/~/");
-                        if(displayName != null && displayName.length() > 0)
-                        {
-                            endpoint.setDisplayName(displayName);
-                        }
-
-                        FileTransferManager.get().setDefaultDestinationEndpoint(endpoint);
-                    }
-                }
-            }
-        }
-        catch(Exception e)
-        {
-            LOG.error("Unable to get default endpoint: ", e);
-        }
-    }
 
     public static class AuthForm
     {

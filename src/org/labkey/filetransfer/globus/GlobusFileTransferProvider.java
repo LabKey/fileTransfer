@@ -40,6 +40,7 @@ import org.labkey.api.view.ViewContext;
 import org.labkey.filetransfer.FileTransferController;
 import org.labkey.filetransfer.FileTransferManager;
 import org.labkey.filetransfer.model.TransferEndpoint;
+import org.labkey.filetransfer.model.TransferEndpointList;
 import org.labkey.filetransfer.provider.FileTransferProvider;
 import org.labkey.filetransfer.security.OAuth2Authenticator;
 
@@ -208,5 +209,35 @@ public class GlobusFileTransferProvider extends FileTransferProvider
     public OAuth2Authenticator getAuthenticator(Container container, User user)
     {
         return new GlobusAuthenticator(user, container);
+    }
+
+    /**
+     * FTM streamline: send a call to globus API asking for all endpoints belonging to the authenticated user.
+     * Take the first response and set it as the default endpoint, so first-time users don't have to bounce back to globus.
+     * Also use the default path (/~/) for the same reason.
+     * Users still have the option of selecting a different destination manually, which will override these settings.
+     * */
+    public void setupDefaultEndpoint() throws Exception
+    {
+        String searchUri = "https://www.globus.org/service/transfer/v0.10/" /*TODO:genericize!*/ + "/endpoint_search?filter_scope=my-endpoints";
+        try
+        {
+            Object data = makeApiGetRequest(new URI(searchUri), TransferEndpointList.class);
+            if (data != null && data instanceof TransferEndpointList)
+            {
+                TransferEndpoint[] endpoints = ((TransferEndpointList) data).getData();
+                if (endpoints != null && endpoints.length > 0)
+                {
+                    TransferEndpoint firstEndpoint = endpoints[0];
+                    firstEndpoint.setPath("/~/");
+
+                    FileTransferManager.get().setDefaultDestinationEndpoint(firstEndpoint);
+                }
+            }
+        }
+        catch(Exception e)
+        {
+            logger.error("Unable to get default endpoint: ", e);
+        }
     }
 }

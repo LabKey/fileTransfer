@@ -59,6 +59,11 @@ public abstract class FileTransferProvider
         return name;
     }
 
+    public void setCredential(StoredCredential c)
+    {
+        credential = c;
+    }
+
     public FileTransferSettings getSettings()
     {
         return settings;
