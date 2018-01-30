@@ -70,8 +70,8 @@
                 + 'local file system relative to <%=h(provider.getSettings().getFileTransferRoot())%> where the files to be transferred in this webpart are available.';
 
         var localFilesDirectoryHeader = Ext4.create('Ext.form.Label', {
-                html: '<span style="font-weight: bold">Files Directory</span></br>' + localDirMsg
-           });
+            html: '<span style="font-weight: bold">Files Directory</span></br>' + localDirMsg
+        });
 
         var localFilesDirectoryField = Ext4.create('Ext.form.field.Text', {
             name: "localFilesDirectory",
@@ -117,7 +117,7 @@
             listeners: {
                 select: function(combo) {
                     containerIdTextField.setValue(combo.getValue());
-                    sqvModel.changeQueryStore(combo.getValue(), 'lists');
+                    sqvModel.changeQueryStore(combo.getValue(), 'study');
                 }
             }
         }));
@@ -127,7 +127,7 @@
             labelWidth: 150,
             allowBlank: false,
             fieldLabel: 'Schema',
-            value: 'lists',
+            value: 'study',
             disabled: true,
             width: 300,
             padding: '10px 0 0 0'
@@ -136,7 +136,7 @@
         var queryComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeQueryComboConfig({
             name: 'listTable',
             forceSelection: true,
-            defaultSchema: 'lists',
+            defaultSchema: 'study',
             fieldLabel: 'List'+ getFieldHoverText('Reference List', 'Specify the name of the '
                     + 'list that contains the metadata for the files referenced in this webpart.'),
             labelWidth: 150,

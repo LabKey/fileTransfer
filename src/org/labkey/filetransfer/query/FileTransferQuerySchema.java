@@ -28,6 +28,7 @@ import org.labkey.api.security.User;
 import org.labkey.api.view.Portal;
 import org.labkey.filetransfer.FileTransferManager;
 import org.labkey.filetransfer.FileTransferModule;
+import org.labkey.study.model.DatasetDefinition;
 
 import java.util.Collections;
 import java.util.Map;
@@ -71,8 +72,8 @@ public class FileTransferQuerySchema extends UserSchema
             {
                 Portal.WebPart webPart = Portal.getPart(getContainer(), Integer.parseInt(parts[1]));
                 Map<String, String> properties = webPart.getPropertyMap();
-                ListDefinition listDef = FileTransferManager.get().getMetadataList(properties);
-                return listDef == null ? null : new FileTransferMetadataTable(properties, listDef.getTable(getUser()), this);
+                DatasetDefinition def = FileTransferManager.get().getMetadataList(properties);
+                return def == null ? null : new FileTransferMetadataTable(properties, def.getTableInfo(getUser()), this);
             }
         }
         return null;

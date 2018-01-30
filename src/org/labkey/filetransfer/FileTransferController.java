@@ -19,6 +19,7 @@ package org.labkey.filetransfer;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.FormViewAction;
@@ -74,6 +75,7 @@ public class FileTransferController extends SpringActionController
 {
     private static final DefaultActionResolver _actionResolver = new DefaultActionResolver(FileTransferController.class);
     public static final String NAME = "filetransfer";
+    private static final Logger LOG = Logger.getLogger(FileTransferController.class);
 
     public FileTransferController()
     {
@@ -183,8 +185,20 @@ public class FileTransferController extends SpringActionController
             session.setAttribute(FileTransferManager.WEB_PART_ID_SESSION_KEY, form.getWebPartId());
             session.setAttribute(FileTransferManager.RETURN_URL_SESSION_KEY, form.getReturnUrl());
             FileTransferProvider provider = FileTransferManager.get().getProvider(getViewContext());
+
+            // optional env variable to toggle whether to call Globus
+            // set to 'true' or 'false'
+            // ENDPOINT_ENABLE
+            if( false )
+            {
+                errors.reject("ENDPOINT_ENABLE is set to false. Request will not be sent.");
+                return null;
+            }
+
+
             if (provider != null)
             {
+
                 OAuth2Authenticator authenticator = provider.getAuthenticator(getContainer(), getUser());
                 throw new RedirectException(authenticator.getAuthorizationUrl());
             }
@@ -283,8 +297,18 @@ public class FileTransferController extends SpringActionController
                     }
                     else
                     {
-                        store.set(store.getId(), new StoredCredential(c));
+                        StoredCredential sc = new StoredCredential(c);
+                        store.set(store.getId(), sc);
                         this.authorized = true;
+
+
+                        //FTM streamline
+                        provider.setCredential(sc);
+                        ((GlobusFileTransferProvider) provider).setupDefaultEndpoint(); 
+
+
+
+
                         return true;
                     }
                 }
@@ -299,6 +323,8 @@ public class FileTransferController extends SpringActionController
         {
         }
     }
+
+
 
     public static class AuthForm
     {
