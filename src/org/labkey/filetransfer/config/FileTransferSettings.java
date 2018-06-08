@@ -44,7 +44,7 @@ public class FileTransferSettings extends AbstractWriteableSettingsGroup
 
     public FileTransferSettings(String providerName)
     {
-        this._providerName = providerName;
+        _providerName = providerName;
         makeWriteable(ContainerManager.getRoot());
     }
 
@@ -61,7 +61,7 @@ public class FileTransferSettings extends AbstractWriteableSettingsGroup
 
     public void setProviderName(String providerName)
     {
-        this._providerName = providerName;
+        _providerName = providerName;
     }
 
     @Override
