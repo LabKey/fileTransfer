@@ -21,7 +21,7 @@ import org.labkey.test.pages.LabKeyPage;
 import org.labkey.test.selenium.LazyWebElement;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.internal.WrapsDriver;
+import org.openqa.selenium.WrapsDriver;
 
 public class CustomizeFileTransferPage<EC extends CustomizeFileTransferPage.ElementCache> extends LabKeyPage<EC>
 {
