@@ -33,7 +33,6 @@ import org.labkey.api.admin.AdminUrls;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.security.AdminConsoleAction;
-import org.labkey.api.security.CSRF;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.User;
@@ -85,7 +84,6 @@ public class FileTransferController extends SpringActionController
         return new ActionURL(ConfigurationAction.class, ContainerManager.getRoot());
     }
 
-    @CSRF
     @AdminConsoleAction(AdminOperationsPermission.class)
     public class ConfigurationAction extends FormViewAction<FileTransferConfigForm>
     {
@@ -164,7 +162,6 @@ public class FileTransferController extends SpringActionController
      * authorization UI.  This redirect contains a parameter indicating the action to return to when authentication is
      * complete.
      */
-    @CSRF
     @RequiresPermission(ReadPermission.class)
     public class AuthAction extends SimpleViewAction<TransferSelectionForm>
     {
@@ -229,7 +226,6 @@ public class FileTransferController extends SpringActionController
      * and display items for next steps, which are either to return to the page where the initial selection of files was
      * made, choose a destination endpoint, or initiate a transfer of the selected files.
      */
-    @CSRF
     @RequiresNoPermission
     public class TokensAction extends RedirectAction<AuthForm>
     {
@@ -326,7 +322,6 @@ public class FileTransferController extends SpringActionController
         }
     }
 
-    @CSRF
     @RequiresPermission(ReadPermission.class)
     public class TransferAction extends ApiAction<TransferRequestForm>
     {
