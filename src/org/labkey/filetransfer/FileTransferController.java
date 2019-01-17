@@ -289,11 +289,6 @@ public class FileTransferController extends SpringActionController
             }
             return true;
         }
-
-        @Override
-        public void validateCommand(AuthForm target, Errors errors)
-        {
-        }
     }
 
     public static class AuthForm
