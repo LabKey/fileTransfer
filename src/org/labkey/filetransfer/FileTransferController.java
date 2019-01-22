@@ -24,7 +24,7 @@ import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.Marshal;
 import org.labkey.api.action.Marshaller;
-import org.labkey.api.action.RedirectAction;
+import org.labkey.api.action.OldRedirectAction;
 import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleResponse;
 import org.labkey.api.action.SimpleViewAction;
@@ -227,7 +227,7 @@ public class FileTransferController extends SpringActionController
      * made, choose a destination endpoint, or initiate a transfer of the selected files.
      */
     @RequiresNoPermission
-    public class TokensAction extends RedirectAction<AuthForm>
+    public class TokensAction extends OldRedirectAction<AuthForm>
     {
         Boolean authorized = false;
         FileTransferManager.ErrorCode errorCode = null;
