@@ -19,12 +19,13 @@ package org.labkey.filetransfer;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.Marshal;
 import org.labkey.api.action.Marshaller;
 import org.labkey.api.action.MutatingApiAction;
-import org.labkey.api.action.OldRedirectAction;
+import org.labkey.api.action.RedirectAction;
 import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleResponse;
 import org.labkey.api.action.SimpleViewAction;
@@ -46,6 +47,7 @@ import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.RedirectException;
+import org.labkey.filetransfer.FileTransferManager.ErrorCode;
 import org.labkey.filetransfer.config.FileTransferSettings;
 import org.labkey.filetransfer.globus.GlobusFileTransferProvider;
 import org.labkey.filetransfer.globus.TransferResult;
@@ -227,19 +229,60 @@ public class FileTransferController extends SpringActionController
      * made, choose a destination endpoint, or initiate a transfer of the selected files.
      */
     @RequiresNoPermission
-    public class TokensAction extends OldRedirectAction<AuthForm>
+    public class TokensAction extends RedirectAction<AuthForm>
     {
-        Boolean authorized = false;
-        FileTransferManager.ErrorCode errorCode = null;
+        private boolean authorized = false;
+        private ErrorCode errorCode = null;
 
         @Override
-        public URLHelper getSuccessURL(AuthForm authForm)
+        public @Nullable URLHelper getURL(AuthForm form, Errors errors)
         {
+            if (form.getError() != null)
+            {
+                // not an error because the user may have simply chosen not to authorize the client.
+                logger.info("Error in authorizing: " + form.getError());
+                this.authorized = false;
+            }
+            else if (form.getCode() != null)
+            {
+                SecurePropertiesDataStore store = new SecurePropertiesDataStore(getUser(), FileTransferManager.get().getContainer(getViewContext()));
+                FileTransferProvider provider = FileTransferManager.get().getProvider(getViewContext());
+
+                if (provider != null)
+                {
+                    OAuth2Authenticator authenticator = provider.getAuthenticator(getContainer(), getUser());
+                    Credential c = authenticator.getTokens(form.getCode());
+
+                    if (c == null || c.getAccessToken() == null)
+                    {
+                        errorCode = ErrorCode.noTokens;
+                    }
+                    else
+                    {
+                        // This action must accept GET to support redirects from Globus. We just authenticated the token(s)
+                        // passed in the request above, though, so the database mutation code below is not CSRF-vulnerable.
+                        try (var ignored = SpringActionController.ignoreSqlUpdates())
+                        {
+                            store.set(store.getId(), new StoredCredential(c));
+                        }
+                        this.authorized = true;
+                    }
+                }
+                else
+                {
+                    errorCode = ErrorCode.noProvider;
+                }
+            }
+
             ActionURL url = new ActionURL(PrepareAction.class, FileTransferManager.get().getContainer(getViewContext())).addParameter("authorized", authorized);
+
             if (errorCode != null)
                 url.addParameter("errorCode", errorCode.toString());
+
             String returnUrl = (String) getViewContext().getSession().getAttribute(FileTransferManager.RETURN_URL_SESSION_KEY);
+
             if (returnUrl != null)
+            {
                 try
                 {
                     url.addReturnURL(new URLHelper(returnUrl));
@@ -249,45 +292,9 @@ public class FileTransferController extends SpringActionController
                     logger.error("Invalid URI syntax for returnUrl " + returnUrl + " returning to container start URL", e);
                     url.addReturnURL(getViewContext().getContainer().getStartURL(getUser()));
                 }
+            }
+
             return url;
-        }
-
-        @Override
-        public boolean doAction(AuthForm form, BindException errors)
-        {
-            if (form.getError() != null)
-            {
-                // not an error because the user may have simply chosen not to authorize the client.
-                logger.info("Error in authorizing: " + form.getError());
-                this.authorized = false;
-                return true;
-            }
-            else if (form.getCode() != null)
-            {
-                SecurePropertiesDataStore store = new SecurePropertiesDataStore(getUser(), FileTransferManager.get().getContainer(getViewContext()));
-
-                FileTransferProvider provider = FileTransferManager.get().getProvider(getViewContext());
-                if (provider != null)
-                {
-                    OAuth2Authenticator authenticator = provider.getAuthenticator(getContainer(), getUser());
-
-                    Credential c = authenticator.getTokens(form.getCode());
-                    if (c == null || c.getAccessToken() == null)
-                    {
-                        errorCode = FileTransferManager.ErrorCode.noTokens;
-                        return true;
-                    }
-                    else
-                    {
-                        store.set(store.getId(), new StoredCredential(c));
-                        this.authorized = true;
-                        return true;
-                    }
-                }
-                else
-                    errorCode = FileTransferManager.ErrorCode.noProvider;
-            }
-            return true;
         }
     }
 
@@ -444,7 +451,7 @@ public class FileTransferController extends SpringActionController
         private String endpoint_id; // parameter names dictated by https://docs.globus.org/api/helper-pages/browse-endpoint/
         private String path;
         private String label;
-        private FileTransferManager.ErrorCode errorCode;
+        private ErrorCode errorCode;
 
         public Boolean getAuthorized()
         {
@@ -497,12 +504,12 @@ public class FileTransferController extends SpringActionController
             this.label = label;
         }
 
-        public FileTransferManager.ErrorCode getErrorCode()
+        public ErrorCode getErrorCode()
         {
             return errorCode;
         }
 
-        public void setErrorCode(FileTransferManager.ErrorCode errorCode)
+        public void setErrorCode(ErrorCode errorCode)
         {
             this.errorCode = errorCode;
         }
