@@ -20,10 +20,10 @@ import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
-import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.Marshal;
 import org.labkey.api.action.Marshaller;
+import org.labkey.api.action.MutatingApiAction;
 import org.labkey.api.action.OldRedirectAction;
 import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleResponse;
@@ -235,7 +235,7 @@ public class FileTransferController extends SpringActionController
         @Override
         public URLHelper getSuccessURL(AuthForm authForm)
         {
-            ActionURL url = new ActionURL(PrepareAction.class,  FileTransferManager.get().getContainer(getViewContext())).addParameter("authorized", authorized);
+            ActionURL url = new ActionURL(PrepareAction.class, FileTransferManager.get().getContainer(getViewContext())).addParameter("authorized", authorized);
             if (errorCode != null)
                 url.addParameter("errorCode", errorCode.toString());
             String returnUrl = (String) getViewContext().getSession().getAttribute(FileTransferManager.RETURN_URL_SESSION_KEY);
@@ -253,7 +253,7 @@ public class FileTransferController extends SpringActionController
         }
 
         @Override
-        public boolean doAction(AuthForm form, BindException errors) throws Exception
+        public boolean doAction(AuthForm form, BindException errors)
         {
             if (form.getError() != null)
             {
@@ -318,10 +318,10 @@ public class FileTransferController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class TransferAction extends ApiAction<TransferRequestForm>
+    public class TransferAction extends MutatingApiAction<TransferRequestForm>
     {
         @Override
-        public Object execute(TransferRequestForm form, BindException errors) throws Exception
+        public Object execute(TransferRequestForm form, BindException errors)
         {
             FileTransferProvider provider = FileTransferManager.get().getProvider(getViewContext());
             if (provider == null)
@@ -337,7 +337,6 @@ public class FileTransferController extends SpringActionController
             {
                 return new SimpleResponse(false, e.getMessage());
             }
-
         }
     }
 

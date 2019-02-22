@@ -104,10 +104,9 @@ public abstract class OAuth2Authenticator
         tokenRequest.setRedirectUri(getRedirectUri());
         tokenRequest.setClientAuthentication(getClientAuthentication());
 
-        TokenResponse response = null;
         try
         {
-            response = tokenRequest.execute();
+            TokenResponse response = tokenRequest.execute();
 
             if (response.getAccessToken() != null)
                 return createCredentialWithRefreshToken(user, container, tokenRequest.getTransport(), tokenRequest.getJsonFactory(), response);
@@ -121,7 +120,7 @@ public abstract class OAuth2Authenticator
         }
     }
 
-    public Credential createCredentialWithRefreshToken(User user, Container container, HttpTransport transport, JsonFactory jsonFactory, TokenResponse tokenResponse) throws IOException
+    public Credential createCredentialWithRefreshToken(User user, Container container, HttpTransport transport, JsonFactory jsonFactory, TokenResponse tokenResponse)
     {
         DataStore<StoredCredential> store = new SecurePropertiesDataStore(user, container);
         return new Credential.Builder(BearerToken.authorizationHeaderAccessMethod()).setTransport(
@@ -135,5 +134,4 @@ public abstract class OAuth2Authenticator
                 .build()
                 .setFromTokenResponse(tokenResponse);
     }
-
 }

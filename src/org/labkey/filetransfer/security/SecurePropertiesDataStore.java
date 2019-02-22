@@ -22,7 +22,6 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
 import org.labkey.api.security.User;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -37,8 +36,8 @@ import static org.labkey.filetransfer.security.OAuth2Authenticator.REFRESH_TOKEN
  */
 public class SecurePropertiesDataStore implements DataStore<StoredCredential>
 {
-    private User user;
-    private Container container;
+    private final User user;
+    private final Container container;
 
     public SecurePropertiesDataStore(User user, Container container)
     {
@@ -69,36 +68,36 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
     }
 
     @Override
-    public int size() throws IOException
+    public int size()
     {
         return 0;
     }
 
     @Override
-    public boolean isEmpty() throws IOException
+    public boolean isEmpty()
     {
         return false;
     }
 
     @Override
-    public boolean containsKey(String key) throws IOException
+    public boolean containsKey(String key)
     {
         return false;
     }
 
     @Override
-    public boolean containsValue(StoredCredential value) throws IOException
+    public boolean containsValue(StoredCredential value)
     {
         return false;
     }
 
     @Override
-    public Set<String> keySet() throws IOException
+    public Set<String> keySet()
     {
         return null;
     }
 
-    public Collection<StoredCredential> values() throws IOException
+    public Collection<StoredCredential> values()
     {
         return Collections.singleton(get(null));
     }
@@ -116,12 +115,12 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
         return credential;
     }
 
-    public StoredCredential get(String key) throws IOException
+    public StoredCredential get(String key)
     {
         return getCredential();
     }
 
-    public SecurePropertiesDataStore set(String key, StoredCredential value) throws IOException
+    public SecurePropertiesDataStore set(String key, StoredCredential value)
     {
         PropertyManager.PropertyMap properties = getWritableProperties(user, container);
         properties.put(ACCESS_TOKEN, value.getAccessToken());
@@ -132,7 +131,7 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
         return this;
     }
 
-    public SecurePropertiesDataStore clear() throws IOException
+    public SecurePropertiesDataStore clear()
     {
         PropertyManager.PropertyMap properties = getWritableProperties(user, container);
         properties.clear();
@@ -141,7 +140,7 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
         return this;
     }
 
-    public SecurePropertiesDataStore delete(String key) throws IOException
+    public SecurePropertiesDataStore delete(String key)
     {
         PropertyManager.PropertyMap properties = getWritableProperties(user, container);
         properties.remove(key);
