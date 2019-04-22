@@ -16,6 +16,7 @@
 package org.labkey.filetransfer.query;
 
 import org.jetbrains.annotations.NotNull;
+import org.labkey.api.data.BaseColumnInfo;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.DataColumn;
@@ -45,11 +46,11 @@ public class FileTransferMetadataTable extends FilteredTable<UserSchema>
         wrapAllColumns(true);
         setDetailsURL(null);
 
-        getColumn("CreatedBy").setHidden(true);
-        getColumn("Modified").setHidden(true);
-        getColumn("ModifiedBy").setHidden(true);
-        getColumn("Created").setHidden(true);
-        getColumn("Container").setHidden(true);
+        getMutableColumn("CreatedBy").setHidden(true);
+        getMutableColumn("Modified").setHidden(true);
+        getMutableColumn("ModifiedBy").setHidden(true);
+        getMutableColumn("Created").setHidden(true);
+        getMutableColumn("Container").setHidden(true);
 
         File filesDir = FileTransferManager.get().getLocalFilesDirectory(properties);
         if (filesDir != null && filesDir.exists() && filesDir.canRead())
@@ -58,7 +59,7 @@ public class FileTransferMetadataTable extends FilteredTable<UserSchema>
             ColumnInfo fromColumn = getRealTable().getColumn(properties.get(REFERENCE_COLUMN));
             if (fromColumn == null)
                 return;
-            ColumnInfo availabilityColumn = wrapColumn("Available", new ColumnInfo(fromColumn));
+            BaseColumnInfo availabilityColumn = wrapColumn("Available", new BaseColumnInfo(fromColumn));
             addColumn(availabilityColumn);
             availabilityColumn.setDisplayColumnFactory(colInfo -> new DataColumn(colInfo)
             {
@@ -97,7 +98,6 @@ public class FileTransferMetadataTable extends FilteredTable<UserSchema>
                 }
             });
         }
-
     }
 
     @Override
