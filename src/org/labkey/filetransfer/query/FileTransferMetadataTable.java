@@ -41,8 +41,8 @@ public class FileTransferMetadataTable extends FilteredTable<UserSchema>
 {
     public FileTransferMetadataTable(Map<String, String> properties, TableInfo table, @NotNull UserSchema userSchema, ContainerFilter cf)
     {
-        // NOTE: Before immutable_tableinfo changes, this was ContainerFilter.EVERYTHING. We may need to revisit after ITN tests 19.2.
-        super(table, userSchema, cf);
+        // Container filter seems fishy, but tests fail if we just pass in cf. TODO: Document rationale for this...
+        super(table, userSchema, ContainerFilter.EVERYTHING);
 
         wrapAllColumns(true);
         setDetailsURL(null);
