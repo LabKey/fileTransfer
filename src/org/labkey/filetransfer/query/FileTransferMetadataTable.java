@@ -39,9 +39,10 @@ import static org.labkey.filetransfer.FileTransferManager.REFERENCE_COLUMN;
  */
 public class FileTransferMetadataTable extends FilteredTable<UserSchema>
 {
-    public FileTransferMetadataTable(Map<String, String> properties, TableInfo table, @NotNull UserSchema userSchema)
+    public FileTransferMetadataTable(Map<String, String> properties, TableInfo table, @NotNull UserSchema userSchema, ContainerFilter cf)
     {
-        super(table, userSchema, ContainerFilter.EVERYTHING);
+        // NOTE: Before immutable_tableinfo changes, this was ContainerFilter.EVERYTHING. We may need to revisit after ITN tests 19.2.
+        super(table, userSchema, cf);
 
         wrapAllColumns(true);
         setDetailsURL(null);

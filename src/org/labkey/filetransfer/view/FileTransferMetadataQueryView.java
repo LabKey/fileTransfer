@@ -46,12 +46,13 @@ import static org.labkey.filetransfer.FileTransferManager.FILE_TRANSFER_PROVIDER
  */
 public class FileTransferMetadataQueryView extends QueryView
 {
-    Portal.WebPart webPart;
-    Map<String, String> properties;
-    ListDefinition listDef;
-    FileTransferProvider provider;
+    private final Portal.WebPart webPart;
+    private final Map<String, String> properties;
 
-    public FileTransferMetadataQueryView(Portal.WebPart webPart, UserSchema schema, QuerySettings settings, @Nullable Errors errors)
+    private ListDefinition listDef;
+    private FileTransferProvider provider;
+
+    FileTransferMetadataQueryView(Portal.WebPart webPart, UserSchema schema, QuerySettings settings, @Nullable Errors errors)
     {
         super(schema, settings, errors);
         this.webPart = webPart;
@@ -68,7 +69,7 @@ public class FileTransferMetadataQueryView extends QueryView
     @Override
     protected TableInfo createTable()
     {
-        return listDef == null ? null : new FileTransferMetadataTable(properties, listDef.getTable(getUser()), new FileTransferQuerySchema(getUser(), getContainer()));
+        return listDef == null ? null : new FileTransferMetadataTable(properties, listDef.getTable(getUser()), new FileTransferQuerySchema(getUser(), getContainer()), getContainerFilter());
     }
 
     @Override
