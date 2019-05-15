@@ -17,6 +17,7 @@ package org.labkey.filetransfer.query;
 
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.list.ListDefinition;
 import org.labkey.api.exp.list.ListService;
@@ -39,7 +40,7 @@ import java.util.Set;
 public class FileTransferQuerySchema extends UserSchema
 {
     public static final String NAME = "fileTransfer";
-    public static final String DESCRIPTION = "Provides data on file transfer endpoints";
+    private static final String DESCRIPTION = "Provides data on file transfer endpoints";
 
     public static final String FILE_METADATA_TABLE_NAME = "FileMetadata";
 
@@ -60,9 +61,8 @@ public class FileTransferQuerySchema extends UserSchema
         });
     }
 
-    @Nullable
     @Override
-    public TableInfo createTable(String name)
+    public @Nullable TableInfo createTable(String name, ContainerFilter cf)
     {
         if (name.startsWith(FILE_METADATA_TABLE_NAME))
         {
@@ -72,7 +72,7 @@ public class FileTransferQuerySchema extends UserSchema
                 Portal.WebPart webPart = Portal.getPart(getContainer(), Integer.parseInt(parts[1]));
                 Map<String, String> properties = webPart.getPropertyMap();
                 ListDefinition listDef = FileTransferManager.get().getMetadataList(properties);
-                return listDef == null ? null : new FileTransferMetadataTable(properties, listDef.getTable(getUser()), this);
+                return listDef == null ? null : new FileTransferMetadataTable(properties, listDef.getTable(getUser()), this, cf);
             }
         }
         return null;
