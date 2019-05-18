@@ -1,22 +1,20 @@
-<%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%
-    /*
-     * Copyright (c) 2017 LabKey Corporation
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     *     http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
+/*
+ * Copyright (c) 2017 LabKey Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 %>
-
 <%@ page import="org.apache.commons.lang3.StringUtils" %>
 <%@ page import="org.labkey.api.util.Button" %>
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
@@ -26,6 +24,7 @@
 <%@ page import="org.labkey.filetransfer.FileTransferController" %>
 <%@ page import="org.labkey.filetransfer.FileTransferManager" %>
 <%@ page import="org.labkey.filetransfer.model.TransferBean" %>
+<%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
     @Override
@@ -38,7 +37,7 @@
     JspView<TransferBean>  me = (JspView<TransferBean>) JspView.currentView();
     TransferBean bean = me.getModelBean();
     String returnUrl = bean.getReturnUrl();
-    Boolean transferEnabled = bean.getAuthorized() && bean.getSource() != null && bean.getDestination() != null && bean.getTransferResultMsg() == null;
+    boolean transferEnabled = bean.getAuthorized() && bean.getSource() != null && bean.getDestination() != null && bean.getTransferResultMsg() == null;
     String notifyMsg = "";
     if (bean.getErrorCode() == FileTransferManager.ErrorCode.noProvider)
         notifyMsg = "No file transfer provider available in the session.";
@@ -155,7 +154,7 @@ to directory <%=h(bean.getDestination().getPath())%> on destination endpoint '<%
 <b>OR</b> select a different destination endpoint.
 <%
         }
-        out.write(PageFlowUtil.button("Browse").href(browseEndpointsUrl).toString());
+        out.print(PageFlowUtil.button("Browse").href(browseEndpointsUrl).toString());
 %>
 <br><br>
 <%
@@ -166,9 +165,9 @@ to directory <%=h(bean.getDestination().getPath())%> on destination endpoint '<%
         {
             builder.onClick("makeTransferRequest(); return false;");
         }
-        out.write(builder.toString());
+        out.print(builder.toString());
 %>
 <%
     }
-    out.write(PageFlowUtil.button(cancelText).href(returnUrl).toString());
+    out.print(PageFlowUtil.button(cancelText).href(returnUrl).toString());
 %>
