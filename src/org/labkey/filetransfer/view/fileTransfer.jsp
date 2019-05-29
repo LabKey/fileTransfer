@@ -154,20 +154,20 @@ to directory <%=h(bean.getDestination().getPath())%> on destination endpoint '<%
 <b>OR</b> select a different destination endpoint.
 <%
         }
-        out.print(PageFlowUtil.button("Browse").href(browseEndpointsUrl).toString());
+        out.print(button("Browse").href(browseEndpointsUrl));
 %>
 <br><br>
 <%
-        Button.ButtonBuilder builder=PageFlowUtil.button("Transfer");
+        Button.ButtonBuilder builder = button("Transfer");
         builder.enabled(transferEnabled);
         builder.id("transferBtn");
         if (transferEnabled)
         {
             builder.onClick("makeTransferRequest(); return false;");
         }
-        out.print(builder.toString());
+        out.print(builder);
 %>
 <%
     }
-    out.print(PageFlowUtil.button(cancelText).href(returnUrl).toString());
+    out.print(button(cancelText).href(returnUrl));
 %>
