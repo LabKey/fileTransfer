@@ -72,8 +72,14 @@ public class FileTransferQuerySchema extends UserSchema
                 Portal.WebPart webPart = Portal.getPart(getContainer(), Integer.parseInt(parts[1]));
                 Map<String, String> properties = webPart.getPropertyMap();
                 ListDefinition listDef = FileTransferManager.get().getMetadataList(properties);
-                return listDef == null ? null : new FileTransferMetadataTable(properties, listDef.getTable(getUser()), this, cf);
-            }
+                if (listDef != null && listDef.getDomain() != null)
+                {
+                    UserSchema userSchema = ListService.get().getUserSchema(getUser(), getContainer());
+                    TableInfo listTable = userSchema.getTable(listDef.getDomain().getName(), cf, true, true);
+
+                    return new FileTransferMetadataTable(properties, listTable, this, cf);
+                }
+                return null;            }
         }
         return null;
     }
