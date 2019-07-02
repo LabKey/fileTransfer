@@ -77,9 +77,11 @@ public class FileTransferQuerySchema extends UserSchema
                     UserSchema userSchema = ListService.get().getUserSchema(getUser(), getContainer());
                     TableInfo listTable = userSchema.getTable(listDef.getDomain().getName(), cf, true, true);
 
-                    return new FileTransferMetadataTable(properties, listTable, this, cf);
+                    if (listTable != null)
+                        return new FileTransferMetadataTable(properties, listTable, this, cf);
                 }
-                return null;            }
+                return null;
+            }
         }
         return null;
     }
