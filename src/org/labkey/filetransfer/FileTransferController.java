@@ -19,14 +19,13 @@ package org.labkey.filetransfer;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.Marshal;
 import org.labkey.api.action.Marshaller;
 import org.labkey.api.action.MutatingApiAction;
-import org.labkey.api.action.RedirectAction;
 import org.labkey.api.action.ReturnUrlForm;
+import org.labkey.api.action.SimpleRedirectAction;
 import org.labkey.api.action.SimpleResponse;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
@@ -229,13 +228,13 @@ public class FileTransferController extends SpringActionController
      * made, choose a destination endpoint, or initiate a transfer of the selected files.
      */
     @RequiresNoPermission
-    public class TokensAction extends RedirectAction<AuthForm>
+    public class TokensAction extends SimpleRedirectAction<AuthForm>
     {
         private boolean authorized = false;
         private ErrorCode errorCode = null;
 
         @Override
-        public @Nullable URLHelper getURL(AuthForm form, Errors errors)
+        public URLHelper getRedirectURL(AuthForm form)
         {
             if (form.getError() != null)
             {
