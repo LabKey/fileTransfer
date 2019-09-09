@@ -150,7 +150,7 @@ public class FileTransferManager
         {
             SimpleFilter filter;
 
-            Set<String> selectedVals = DataRegionSelection.getSelected(context, key, true, false);
+            Set<String> selectedVals = DataRegionSelection.getSelected(context, key, false);
 
             // TODO create a helper method for inClause that compensates for the key type
             if (listDef.getKeyType() == ListDefinition.KeyType.AutoIncrementInteger || listDef.getKeyType() == ListDefinition.KeyType.Integer)
