@@ -62,6 +62,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
 import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 
 import static org.labkey.api.data.DataRegionSelection.DATA_REGION_SELECTION_KEY;
@@ -111,7 +112,7 @@ public class FileTransferController extends SpringActionController
         }
 
         @Override
-        public ModelAndView getView(FileTransferConfigForm form, boolean reshow, BindException errors) throws Exception
+        public ModelAndView getView(FileTransferConfigForm form, boolean reshow, BindException errors)
         {
             FileTransferSettings settings = new FileTransferSettings(GlobusFileTransferProvider.NAME);
             form.setName(settings.getProviderName());
@@ -132,7 +133,7 @@ public class FileTransferController extends SpringActionController
         }
 
         @Override
-        public boolean handlePost(FileTransferConfigForm form, BindException errors) throws Exception
+        public boolean handlePost(FileTransferConfigForm form, BindException errors)
         {
             if (!StringUtils.isEmpty(form.getSourceEndpointLocalDir()))
             {
@@ -173,7 +174,7 @@ public class FileTransferController extends SpringActionController
         }
 
         @Override
-        public ModelAndView getView(TransferSelectionForm form, BindException errors) throws Exception
+        public ModelAndView getView(TransferSelectionForm form, BindException errors)
         {
             HttpSession session = getViewContext().getRequest().getSession();
             session.setAttribute(DATA_REGION_SELECTION_KEY, form.getDataRegionSelectionKey());
@@ -415,7 +416,7 @@ public class FileTransferController extends SpringActionController
         }
 
         @Override
-        public ModelAndView getView(PrepareTransferForm form, BindException errors) throws Exception
+        public ModelAndView getView(PrepareTransferForm form, BindException errors) throws IOException, URISyntaxException
         {
             HttpSession session = getViewContext().getSession();
             // stash these values in the session so we can display them when the user returns to this page.
