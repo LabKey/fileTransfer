@@ -60,7 +60,7 @@ public class FileTransferMetadataTable extends FilteredTable<UserSchema>
             ColumnInfo fromColumn = getRealTable().getColumn(properties.get(REFERENCE_COLUMN));
             if (fromColumn == null)
                 return;
-            BaseColumnInfo availabilityColumn = wrapColumn("Available", new BaseColumnInfo(fromColumn));
+            var availabilityColumn = wrapColumn("Available", new BaseColumnInfo(fromColumn));
             addColumn(availabilityColumn);
             availabilityColumn.setDisplayColumnFactory(colInfo -> new DataColumn(colInfo)
             {
