@@ -90,10 +90,9 @@ public class FileTransferController extends SpringActionController
     public class ConfigurationAction extends FormViewAction<FileTransferConfigForm>
     {
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
             root.addChild("File Transfer Configuration");
-            return root;
         }
 
         @Override
@@ -168,9 +167,8 @@ public class FileTransferController extends SpringActionController
     public class AuthAction extends SimpleViewAction<TransferSelectionForm>
     {
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return null;
         }
 
         @Override
@@ -410,9 +408,8 @@ public class FileTransferController extends SpringActionController
     public class PrepareAction extends SimpleViewAction<PrepareTransferForm>
     {
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return null;
         }
 
         @Override
