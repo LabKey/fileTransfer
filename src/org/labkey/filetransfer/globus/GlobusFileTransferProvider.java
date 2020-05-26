@@ -75,6 +75,7 @@ public class GlobusFileTransferProvider extends FileTransferProvider
         return settings.getTransferApiUrlPrefix();
     }
 
+    @Override
     public TransferResult transfer(@NotNull TransferEndpoint source, @NotNull TransferEndpoint destination, @NotNull List<String> fileNames, @Nullable String label) throws Exception
     {
         if (fileNames.isEmpty())
@@ -126,12 +127,14 @@ public class GlobusFileTransferProvider extends FileTransferProvider
         }
     }
 
+    @Override
     public String getBrowseEndpointUrl(Container container)
     {
         ActionURL actionUrl = new ActionURL(FileTransferController.PrepareAction.class, container);
         return settings.getBrowseEndpointUrlPrefix() + "?method=POST&folderlimit=0&filelimit=0&action=" + actionUrl.getURIString();
     }
 
+    @Override
     @Nullable
     public TransferEndpoint getEndpoint(String endpointId) throws IOException, URISyntaxException
     {
@@ -139,11 +142,13 @@ public class GlobusFileTransferProvider extends FileTransferProvider
         return (TransferEndpoint) makeApiGetRequest(uri, TransferEndpoint.class);
     }
 
+    @Override
     public List<TransferEndpoint> getKnownEndpoints()
     {
         return Collections.emptyList();
     }
 
+    @Override
     public boolean isTransferApiConfigured()
     {
         return settings.getClientId() != null &&

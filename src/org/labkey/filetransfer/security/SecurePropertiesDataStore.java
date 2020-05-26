@@ -97,6 +97,7 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
         return null;
     }
 
+    @Override
     public Collection<StoredCredential> values()
     {
         return Collections.singleton(get(null));
@@ -115,11 +116,13 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
         return credential;
     }
 
+    @Override
     public StoredCredential get(String key)
     {
         return getCredential();
     }
 
+    @Override
     public SecurePropertiesDataStore set(String key, StoredCredential value)
     {
         PropertyManager.PropertyMap properties = getWritableProperties(user, container);
@@ -131,6 +134,7 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
         return this;
     }
 
+    @Override
     public SecurePropertiesDataStore clear()
     {
         PropertyManager.PropertyMap properties = getWritableProperties(user, container);
@@ -140,6 +144,7 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
         return this;
     }
 
+    @Override
     public SecurePropertiesDataStore delete(String key)
     {
         PropertyManager.PropertyMap properties = getWritableProperties(user, container);
