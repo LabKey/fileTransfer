@@ -36,21 +36,25 @@ public class GlobusAuthenticator extends OAuth2Authenticator
         super(user, container, GlobusFileTransferProvider.NAME);
     }
 
+    @Override
     protected String getAuthorizationUrlPrefix()
     {
         return settings.getAuthUrlPrefix() + "/authorize";
     }
 
+    @Override
     protected String getTokensUrlPrefix()
     {
         return settings.getAuthUrlPrefix() + "/token";
     }
 
+    @Override
     protected List<String> getScopes()
     {
         return Arrays.asList(TRANSFER_SCOPE);
     }
 
+    @Override
     protected Map<String, String> getAdditionalAuthParams()
     {
         Map<String, String> paramMap = new HashMap<>();

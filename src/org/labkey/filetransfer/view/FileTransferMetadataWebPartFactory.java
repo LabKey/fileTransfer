@@ -67,6 +67,7 @@ public class FileTransferMetadataWebPartFactory extends BaseWebPartFactory
         return view;
     }
 
+    @Override
     public HttpView getEditView(Portal.WebPart webPart, ViewContext context)
     {
         return new FileTransferWebPartConfigView(webPart, context);
