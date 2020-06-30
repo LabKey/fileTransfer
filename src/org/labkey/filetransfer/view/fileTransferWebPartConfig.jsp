@@ -1,22 +1,21 @@
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%
-    /*
-     * Copyright (c) 2017 LabKey Corporation
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     *     http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
+/*
+ * Copyright (c) 2017 LabKey Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 %>
-
 <%@ page import="org.apache.commons.lang3.StringUtils" %>
 <%@ page import="org.labkey.api.view.JspView" %>
 <%@ page import="org.labkey.api.view.Portal" %>
@@ -66,8 +65,9 @@
             allowBlank: false
         });
 
-        var localDirMsg = <%= StringUtils.isEmpty(provider.getSettings().getFileTransferRoot()) %> ? 'The file transfer root directory must first be configured in the admin console before proceeding with this configuration step.' : 'Specify the directory on the '
-                + 'local file system relative to <%=h(provider.getSettings().getFileTransferRoot())%> where the files to be transferred in this webpart are available.';
+        var localDirMsg = <%= StringUtils.isEmpty(provider.getSettings().getFileTransferRoot()) %> ?
+            'The file transfer root directory must first be configured in the admin console before proceeding with this configuration step.' :
+            'Specify where the files to be transferred in this webpart are available on your local file system. Provide a path relative to the file transfer root directory (set via the admin console).';
 
         var localFilesDirectoryHeader = Ext4.create('Ext.form.Label', {
                 html: '<span style="font-weight: bold">Files Directory</span></br>' + localDirMsg
