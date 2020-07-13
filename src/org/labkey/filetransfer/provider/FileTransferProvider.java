@@ -21,11 +21,11 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
 import org.labkey.api.view.ViewContext;
-import org.labkey.filetransfer.model.TransferEndpoint;
+import org.labkey.filetransfer.config.FileTransferSettings;
 import org.labkey.filetransfer.globus.TransferResult;
+import org.labkey.filetransfer.model.TransferEndpoint;
 import org.labkey.filetransfer.security.OAuth2Authenticator;
 import org.labkey.filetransfer.security.SecurePropertiesDataStore;
-import org.labkey.filetransfer.config.FileTransferSettings;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

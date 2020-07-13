@@ -15,7 +15,8 @@
  */
 package org.labkey.filetransfer.view;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.Portal;
 import org.labkey.api.view.ViewContext;
@@ -28,7 +29,7 @@ import java.io.IOException;
  */
 public class FileTransferWebPartConfigView extends JspView<WebPartConfigBean>
 {
-    private static final Logger logger = Logger.getLogger(FileTransferWebPartConfigView.class);
+    private static final Logger logger = LogManager.getLogger(FileTransferWebPartConfigView.class);
     public FileTransferWebPartConfigView(Portal.WebPart webPart, ViewContext context)
     {
         super("/org/labkey/filetransfer/view/fileTransferWebPartConfig.jsp");

@@ -15,7 +15,8 @@
  */
 package org.labkey.filetransfer.provider;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
 
@@ -28,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Registry
 {
-    private static final Logger logger = Logger.getLogger(Registry.class);
+    private static final Logger logger = LogManager.getLogger(Registry.class);
     private static Map<String, Class<? extends FileTransferProvider>> _providers = new ConcurrentHashMap<>();
     private static Registry _instance = new Registry();
 
