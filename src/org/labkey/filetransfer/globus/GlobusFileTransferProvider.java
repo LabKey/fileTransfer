@@ -28,7 +28,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
@@ -57,7 +58,7 @@ import java.util.Map;
  */
 public class GlobusFileTransferProvider extends FileTransferProvider
 {
-    public static final Logger logger = Logger.getLogger(GlobusFileTransferProvider.class);
+    public static final Logger logger = LogManager.getLogger(GlobusFileTransferProvider.class);
     public static final String NAME = "Globus";
 
     public GlobusFileTransferProvider()

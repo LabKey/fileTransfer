@@ -29,7 +29,8 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.DataStore;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.security.User;
@@ -47,7 +48,7 @@ import java.util.Map;
  */
 public abstract class OAuth2Authenticator
 {
-    private static final Logger logger = Logger.getLogger(OAuth2Authenticator.class);
+    private static final Logger logger = LogManager.getLogger(OAuth2Authenticator.class);
     public static final String ACCESS_TOKEN = "transferToken";
     public static final String REFRESH_TOKEN = "refreshToken";
     public static final String EXPIRE_TIME_MILLIS = "expireTimeMillis";
