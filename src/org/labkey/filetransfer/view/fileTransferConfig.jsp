@@ -171,7 +171,7 @@
             disabled: <%=!canEdit%>,
             fieldLabel: "File Transfer Root Directory" + getFieldHoverText('Source Endpoint File Transfer Root Directory', 'Specify the root directory on the '
                     + 'local file system where the files to be transferred from this endpoint are available.'),
-            value: <%=text(qh(bean.getSourceEndpointLocalDir()))%>,
+            value: <%=qh(bean.getSourceEndpointLocalDir())%>,
             allowBlank: true
         });
 
