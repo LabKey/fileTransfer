@@ -60,8 +60,8 @@
             width: 510,
             padding: '10px 0 25px 0',
             fieldLabel: "Web Part Title",
-            initialValue : <%=text(qh(title))%>,
-            value: <%=text(qh(title))%>,
+            initialValue : <%=qh(title)%>,
+            value: <%=qh(title)%>,
             allowBlank: false
         });
 
