@@ -64,7 +64,7 @@
     function makeTransferRequest()
     {
         Ext4.Ajax.request({
-            url: <%=q(transferUrl.getLocalURIString())%>,
+            url: <%=q(transferUrl)%>,
             method: 'POST',
             jsonData: {
                 sourceEndpoint: <%= q(bean.getSource().getId())%>,
