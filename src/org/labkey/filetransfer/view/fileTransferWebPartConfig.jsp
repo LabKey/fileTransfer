@@ -199,7 +199,7 @@
                 if (form.isValid()) {
                     form.standardSubmit = true;
                     form.submit({
-                        url: <%=q(webPart.getCustomizePostURL(getViewContext()).getLocalURIString())%>,
+                        url: <%=q(webPart.getCustomizePostURL(getViewContext()))%>,
                         method: 'POST',
                         scope: this
                     });

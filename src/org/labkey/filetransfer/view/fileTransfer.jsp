@@ -20,7 +20,7 @@
 <%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page import="org.labkey.api.view.JspView" %>
 <%@ page import="org.labkey.api.view.template.ClientDependencies" %>
-<%@ page import="org.labkey.filetransfer.FileTransferController" %>
+<%@ page import="org.labkey.filetransfer.FileTransferController.TransferAction" %>
 <%@ page import="org.labkey.filetransfer.FileTransferManager" %>
 <%@ page import="org.labkey.filetransfer.model.TransferBean" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
@@ -52,7 +52,7 @@
     if (!notifyMsg.isEmpty())
         notifyMsg += "  No transfer request will be made.";
     String cancelText = "Back";
-    ActionURL transferUrl = new ActionURL(FileTransferController.TransferAction.class, getContainer());
+    ActionURL transferUrl = urlFor(TransferAction.class);
     String browseEndpointsUrl = bean.getBrowseEndpointsUrl();
 %>
 <labkey:errors/>
@@ -64,7 +64,7 @@
     function makeTransferRequest()
     {
         Ext4.Ajax.request({
-            url: <%=q(transferUrl.getLocalURIString())%>,
+            url: <%=q(transferUrl)%>,
             method: 'POST',
             jsonData: {
                 sourceEndpoint: <%= q(bean.getSource().getId())%>,
