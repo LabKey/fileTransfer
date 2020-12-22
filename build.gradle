@@ -1,3 +1,7 @@
+plugins {
+    id 'org.labkey.build.module'
+}
+
 dependencies
 {
     external "com.google.oauth-client:google-oauth-client:${googleOauthClientVersion}"
