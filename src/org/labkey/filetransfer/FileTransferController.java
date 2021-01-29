@@ -92,7 +92,7 @@ public class FileTransferController extends SpringActionController
         @Override
         public void addNavTrail(NavTree root)
         {
-            root.addChild("File Transfer Configuration");
+            urlProvider(AdminUrls.class).addAdminNavTrail(root, "File Transfer Configuration", new ActionURL(getClass(), getContainer()));
         }
 
         @Override
