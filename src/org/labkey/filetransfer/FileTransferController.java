@@ -525,7 +525,7 @@ public class FileTransferController extends SpringActionController
             FileTransferController controller = new FileTransferController();
 
             // @RequiresPermission(ReadPermission.class)
-            assertForReadPermission(user,
+            assertForReadPermission(user, false,
                 controller.new PrepareAction(),
                 controller.new TransferAction(),
                 controller.new AuthAction()
