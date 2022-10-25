@@ -17,17 +17,16 @@ package org.labkey.filetransfer.globus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -118,7 +117,7 @@ public class GlobusFileTransferProvider extends FileTransferProvider
 
             try (CloseableHttpResponse response = httpClient.execute(httpPost))
             {
-                ResponseHandler<String> handler = new BasicResponseHandler();
+                HttpClientResponseHandler<String> handler = new BasicHttpClientResponseHandler();
 //                StatusLine status = response.getStatusLine();
                 // TODO check what happens in the error cases
                 String contents = handler.handleResponse(response);
@@ -170,10 +169,9 @@ public class GlobusFileTransferProvider extends FileTransferProvider
 
             try (CloseableHttpResponse response = httpClient.execute(httpGet))
             {
-                ResponseHandler<String> handler = new BasicResponseHandler();
-                StatusLine status = response.getStatusLine();
+                BasicHttpClientResponseHandler handler = new BasicHttpClientResponseHandler();
 
-                if (status.getStatusCode() == HttpStatus.SC_OK)
+                if (response.getCode() == HttpStatus.SC_OK)
                 {
                     String contents = handler.handleResponse(response);
                     ObjectMapper mapper = new ObjectMapper();
