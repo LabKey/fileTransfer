@@ -540,19 +540,17 @@ public class FileTransferController extends SpringActionController
             User user = TestContext.get().getUser();
             assertTrue(user.hasSiteAdminPermission());
 
-            FileTransferController controller = new FileTransferController();
-
             // @RequiresPermission(ReadPermission.class)
             assertForReadPermission(user,
                 new PrepareAction(),
                 new TransferAction(),
-                    new AuthAction()
+                new AuthAction()
             );
 
             // @AdminConsoleAction
             // @RequiresPermission(AdminOperationsPermission.class)
             assertForAdminPermission(ContainerManager.getRoot(), user,
-                    new ConfigurationAction()
+                new ConfigurationAction()
             );
         }
     }
