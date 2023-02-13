@@ -33,6 +33,7 @@ import org.labkey.api.admin.AdminUrls;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.security.AdminConsoleAction;
+import org.labkey.api.security.CSRF;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.User;
@@ -87,7 +88,7 @@ public class FileTransferController extends SpringActionController
     }
 
     @AdminConsoleAction(AdminOperationsPermission.class)
-    public class ConfigurationAction extends FormViewAction<FileTransferConfigForm>
+    public static class ConfigurationAction extends FormViewAction<FileTransferConfigForm>
     {
         @Override
         public void addNavTrail(NavTree root)
@@ -160,11 +161,11 @@ public class FileTransferController extends SpringActionController
 
     /**
      * This action stores certain properties in the session and then redirects to the authentication provider's
-     * authorization UI.  This redirect contains a parameter indicating the action to return to when authentication is
+     * authorization UI. This redirect contains a parameter indicating the action to return to when authentication is
      * complete.
      */
     @RequiresPermission(ReadPermission.class)
-    public class AuthAction extends SimpleViewAction<TransferSelectionForm>
+    public static class AuthAction extends SimpleViewAction<TransferSelectionForm>
     {
         @Override
         public void addNavTrail(NavTree root)
@@ -203,6 +204,7 @@ public class FileTransferController extends SpringActionController
             return dataRegionSelectionKey;
         }
 
+        @SuppressWarnings("unused")
         public void setDataRegionSelectionKey(String dataRegionSelectionKey)
         {
             this.dataRegionSelectionKey = dataRegionSelectionKey;
@@ -213,6 +215,7 @@ public class FileTransferController extends SpringActionController
             return webPartId;
         }
 
+        @SuppressWarnings("unused")
         public void setWebPartId(Integer webPartId)
         {
             this.webPartId = webPartId;
@@ -220,14 +223,14 @@ public class FileTransferController extends SpringActionController
     }
 
     /**
-     * This action is the target of the authorization action from the file transfer provider.  If authorization has
+     * This action is the target of the authorization action from the file transfer provider. If authorization has
      * been granted, the code provided from that authorization will be used to retrieve credentials to be used in
-     * initiating transfer requests.  In any case, this action redirects to a page where we give feedback to the user
+     * initiating transfer requests. In any case, this action redirects to a page where we give feedback to the user
      * and display items for next steps, which are either to return to the page where the initial selection of files was
      * made, choose a destination endpoint, or initiate a transfer of the selected files.
      */
     @RequiresNoPermission
-    public class TokensAction extends SimpleRedirectAction<AuthForm>
+    public static class TokensAction extends SimpleRedirectAction<AuthForm>
     {
         private boolean authorized = false;
         private ErrorCode errorCode = null;
@@ -306,6 +309,7 @@ public class FileTransferController extends SpringActionController
             return _code;
         }
 
+        @SuppressWarnings("unused")
         public void setCode(String code)
         {
             _code = code;
@@ -316,6 +320,7 @@ public class FileTransferController extends SpringActionController
             return _error;
         }
 
+        @SuppressWarnings("unused")
         public void setError(String error)
         {
             _error = error;
@@ -323,14 +328,14 @@ public class FileTransferController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class TransferAction extends MutatingApiAction<TransferRequestForm>
+    public static class TransferAction extends MutatingApiAction<TransferRequestForm>
     {
         @Override
         public Object execute(TransferRequestForm form, BindException errors)
         {
             FileTransferProvider provider = FileTransferManager.get().getProvider(getViewContext());
             if (provider == null)
-                return new SimpleResponse(false, "Count not find File Transfer Provider in this session.");
+                return new SimpleResponse(false, "Could not find File Transfer Provider in this session.");
             TransferEndpoint source = new TransferEndpoint(form.getSourceEndpoint(), form.getSourcePath());
             TransferEndpoint destination = new TransferEndpoint(form.getDestinationEndpoint(), form.getDestinationPath());
             try
@@ -358,6 +363,7 @@ public class FileTransferController extends SpringActionController
             return sourceEndpoint;
         }
 
+        @SuppressWarnings("unused")
         public void setSourceEndpoint(String sourceEndpoint)
         {
             this.sourceEndpoint = sourceEndpoint;
@@ -368,6 +374,7 @@ public class FileTransferController extends SpringActionController
             return sourcePath;
         }
 
+        @SuppressWarnings("unused")
         public void setSourcePath(String sourcePath)
         {
             this.sourcePath = sourcePath;
@@ -378,6 +385,7 @@ public class FileTransferController extends SpringActionController
             return destinationEndpoint;
         }
 
+        @SuppressWarnings("unused")
         public void setDestinationEndpoint(String destinationEndpoint)
         {
             this.destinationEndpoint = destinationEndpoint;
@@ -388,6 +396,7 @@ public class FileTransferController extends SpringActionController
             return destinationPath;
         }
 
+        @SuppressWarnings("unused")
         public void setDestinationPath(String destinationPath)
         {
             this.destinationPath = destinationPath;
@@ -398,6 +407,7 @@ public class FileTransferController extends SpringActionController
             return label;
         }
 
+        @SuppressWarnings("unused")
         public void setLabel(String label)
         {
             this.label = label;
@@ -405,7 +415,8 @@ public class FileTransferController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class PrepareAction extends SimpleViewAction<PrepareTransferForm>
+    @CSRF(CSRF.Method.NONE) // Globus POSTs to this action, but it's non-mutating, so no need for CSRF
+    public static class PrepareAction extends SimpleViewAction<PrepareTransferForm>
     {
         @Override
         public void addNavTrail(NavTree root)
@@ -455,6 +466,7 @@ public class FileTransferController extends SpringActionController
             return authorized;
         }
 
+        @SuppressWarnings("unused")
         public void setAuthorized(Boolean authorized)
         {
             this.authorized = authorized;
@@ -466,16 +478,19 @@ public class FileTransferController extends SpringActionController
             return endpoint_id;
         }
 
+        @SuppressWarnings("unused")
         public void setDestinationId(String destinationId)
         {
             endpoint_id = destinationId;
         }
 
+        @SuppressWarnings("unused")
         public String getEndpoint_id()
         {
             return endpoint_id;
         }
 
+        @SuppressWarnings("unused")
         public void setEndpoint_id(String endpoint_id)
         {
             this.endpoint_id = endpoint_id;
@@ -486,6 +501,7 @@ public class FileTransferController extends SpringActionController
             return path;
         }
 
+        @SuppressWarnings("unused")
         public void setPath(String path)
         {
             this.path = path;
@@ -496,6 +512,7 @@ public class FileTransferController extends SpringActionController
             return label;
         }
 
+        @SuppressWarnings("unused")
         public void setLabel(String label)
         {
             this.label = label;
@@ -506,6 +523,7 @@ public class FileTransferController extends SpringActionController
             return errorCode;
         }
 
+        @SuppressWarnings("unused")
         public void setErrorCode(ErrorCode errorCode)
         {
             this.errorCode = errorCode;
@@ -526,15 +544,15 @@ public class FileTransferController extends SpringActionController
 
             // @RequiresPermission(ReadPermission.class)
             assertForReadPermission(user,
-                controller.new PrepareAction(),
-                controller.new TransferAction(),
-                controller.new AuthAction()
+                new PrepareAction(),
+                new TransferAction(),
+                    new AuthAction()
             );
 
             // @AdminConsoleAction
             // @RequiresPermission(AdminOperationsPermission.class)
             assertForAdminPermission(ContainerManager.getRoot(), user,
-                    controller.new ConfigurationAction()
+                    new ConfigurationAction()
             );
         }
     }
