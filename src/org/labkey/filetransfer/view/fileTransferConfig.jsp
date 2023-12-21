@@ -39,7 +39,7 @@
 <h2><%= h(bean.getName()) %> File Transfer</h2>
 <div id="transferForm"></div>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<%=getScriptNonce()%>">
 
     Ext4.onReady(function()
     {
