@@ -60,7 +60,7 @@
     if (transferEnabled)
     {
 %>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<%=getScriptNonce()%>">
     function makeTransferRequest()
     {
         Ext4.Ajax.request({

@@ -17,21 +17,18 @@ package org.labkey.filetransfer.provider;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.labkey.api.collections.CopyOnWriteHashMap;
 import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Created by susanh on 5/22/17.
- */
 public class Registry
 {
     private static final Logger logger = LogManager.getLogger(Registry.class);
-    private static Map<String, Class<? extends FileTransferProvider>> _providers = new ConcurrentHashMap<>();
-    private static Registry _instance = new Registry();
+    private static Map<String, Class<? extends FileTransferProvider>> _providers = new CopyOnWriteHashMap<>();
+    private static final Registry _instance = new Registry();
 
     private Registry()
     {
