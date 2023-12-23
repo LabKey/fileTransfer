@@ -34,7 +34,7 @@ import org.labkey.filetransfer.model.TransferEndpoint;
 import org.labkey.filetransfer.provider.FileTransferProvider;
 import org.labkey.filetransfer.provider.Registry;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
