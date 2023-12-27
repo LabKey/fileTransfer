@@ -44,22 +44,20 @@
 <labkey:errors/>
 <div id="SQVPicker"></div>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<%=getScriptNonce()%>">
 
     Ext4.onReady(function()
     {
-        var getFieldHoverText = function(title, details) {
-            return '<a href="#" onclick="return showHelpDiv(this, \'' + title + '\', \'' + details + '\');" '
-                    + 'onmouseover="return showHelpDivDelay(this, \'' + title + '\', \'' + details + '\');" '
-                    + 'onmouseout="return hideHelpDivDelay();"><span class="labkey-help-pop-up">?</span></a>';
+        var getFieldHoverText = function(id) {
+            return '<a id=\'' + id + '\' href=\'#\'><span class=\'labkey-help-pop-up\'>?</span></a>';
         };
 
-        var webPartTitle = Ext4.create("Ext.form.field.Text", {
-            name: "webpart.title",
+        var webPartTitle = Ext4.create('Ext.form.field.Text', {
+            name: 'webpart.title',
             labelWidth: 150,
             width: 510,
             padding: '10px 0 25px 0',
-            fieldLabel: "Web Part Title",
+            fieldLabel: 'Web Part Title',
             initialValue : <%=qh(title)%>,
             value: <%=qh(title)%>,
             allowBlank: false
@@ -70,23 +68,23 @@
             'Specify where the files to be transferred in this webpart are available on your local file system. Provide a path relative to the file transfer root directory (set via the admin console).';
 
         var localFilesDirectoryHeader = Ext4.create('Ext.form.Label', {
-                html: '<span style="font-weight: bold">Files Directory</span></br>' + localDirMsg
-           });
+            html: '<span style="font-weight: bold">Files Directory</span></br>' + localDirMsg
+        });
 
         var localFilesDirectoryField = Ext4.create('Ext.form.field.Text', {
-            name: "localFilesDirectory",
+            name: 'localFilesDirectory',
             labelWidth: 150,
             width: 510,
             padding: '10px 0 25px 0',
             disabled: <%=StringUtils.isEmpty(provider.getSettings().getFileTransferRoot())%>,
-            fieldLabel: "Local Directory" + getFieldHoverText('Local Directory', localDirMsg),
+            fieldLabel: 'Local Directory' + getFieldHoverText('localFilesDirectory_a'),
             initialValue : <%=q(properties.get("localFilesDirectory"))%>,
             value: <%=q(properties.get("localFilesDirectory"))%>,
             allowBlank: false
         });
 
         var referenceListHeader = Ext4.create('Ext.form.Label', {
-            text: "Reference List" ,
+            text: 'Reference List',
             style: 'font-weight: bold;'
         });
 
@@ -106,8 +104,7 @@
         var containerComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeContainerComboConfig({
             name: 'listFolder',
             labelWidth: 150,
-            fieldLabel: 'Folder' + getFieldHoverText('Reference List Folder', 'Specify the location of the '
-                    + 'list that contains the metadata for the files referenced in this webpart.'),
+            fieldLabel: 'Folder' + getFieldHoverText('listFolder_a'),
             editable: false,
             width: 510,
             padding: '10px 0 0 0',
@@ -137,8 +134,7 @@
             name: 'listTable',
             forceSelection: true,
             defaultSchema: 'lists',
-            fieldLabel: 'List'+ getFieldHoverText('Reference List', 'Specify the name of the '
-                    + 'list that contains the metadata for the files referenced in this webpart.'),
+            fieldLabel: 'List'+ getFieldHoverText('listTable_a'),
             labelWidth: 150,
             allowBlank: false,
             initialValue : <%=q(properties.get("listTable"))%>,
@@ -149,8 +145,7 @@
 
         var columnComboField = Ext4.create('Ext.form.field.ComboBox', sqvModel.makeColumnComboConfig({
             name: 'fileNameColumn',
-            fieldLabel: 'File Name Field' + getFieldHoverText('Reference List Filed', 'Specify the name of the field in the reference list '
-                    + 'that contains the names of the files that could be transferred.'),
+            fieldLabel: 'File Name Field' + getFieldHoverText('fileNameColumn_a'),
             forceSelection: true,
             labelWidth: 150,
             allowBlank: false,
@@ -162,17 +157,16 @@
         }));
 
         var transferSourceHeader = Ext4.create('Ext.form.Label', {
-            text: '<%=h(provider.getName())%> File Transfer Source',
+            text: <%=q(provider.getName())%> + ' File Transfer Source',
             style: 'font-weight: bold;'
         });
 
         var sourceEndpointDirField = Ext4.create('Ext.form.field.Text', {
-            name: "sourceEndpointDir",
+            name: 'sourceEndpointDir',
             labelWidth: 150,
             width: 510,
             padding: '10px 0 25px 0',
-            fieldLabel: "Endpoint Directory" + getFieldHoverText('Endpoint Directory', 'Specify the directory on the '
-                    + 'transfer service provider endpoint that contains the files for this webpart.'),
+            fieldLabel: 'Endpoint Directory' + getFieldHoverText('sourceEndpointDir_a'),
             initialValue : <%=q(properties.get("sourceEndpointDir"))%>,
             value: <%=q(properties.get("sourceEndpointDir"))%>
         });
@@ -182,9 +176,9 @@
             scope: this,
             handler: function ()
             {
-                var url = LABKEY.ActionURL.getParameter("returnUrl");
+                var url = LABKEY.ActionURL.getParameter('returnUrl');
                 if (!url)
-                    url = LABKEY.ActionURL.buildURL("project", "begin.view");
+                    url = LABKEY.ActionURL.buildURL('project', 'begin.view');
 
                 window.location = url;
             }
@@ -206,6 +200,13 @@
                 }
             }
         });
+
+        const attachEvents = function (id, title, details) {
+            const element = document.getElementById(id);
+            element['onclick'] = function(){ return showHelpDiv(this, title, details); };
+            element['onmouseover'] = function(){ return showHelpDiv(this, title, details); };
+            element['onmouseout'] = function(){ return hideHelpDivDelay(); };
+        }
 
         Ext4.create('Ext.form.Panel', {
             border : false,
@@ -230,7 +231,16 @@
             buttons: [
                 cancelButton,
                 saveButton
-            ]
+            ],
+            listeners: {
+                render: function () {
+                    attachEvents('localFilesDirectory_a', 'Local Directory', localDirMsg);
+                    attachEvents('listFolder_a', 'Reference List Folder', 'Specify the location of the list that contains the metadata for the files referenced in this webpart.');
+                    attachEvents('listTable_a', 'Reference List', 'Specify the name of the list that contains the metadata for the files referenced in this webpart.');
+                    attachEvents('fileNameColumn_a', 'Reference List Filed', 'Specify the name of the field in the reference list that contains the names of the files that could be transferred.');
+                    attachEvents('sourceEndpointDir_a', 'Endpoint Directory', 'Specify the directory on the transfer service provider endpoint that contains the files for this webpart.');
+                }
+            }
         });
     });
 </script>
