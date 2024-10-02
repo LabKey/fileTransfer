@@ -20,6 +20,7 @@ import com.google.api.client.util.store.DataStore;
 import com.google.api.client.util.store.DataStoreFactory;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
+import org.labkey.api.data.PropertyManager.WritablePropertyMap;
 import org.labkey.api.security.User;
 
 import java.util.Collection;
@@ -50,7 +51,7 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
         return PropertyManager.getEncryptedStore().getProperties(user, container, FILE_TRANSFER_AUTH_CATEGORY);
     }
 
-    private PropertyManager.PropertyMap getWritableProperties(User user, Container container)
+    private WritablePropertyMap getWritableProperties(User user, Container container)
     {
         return PropertyManager.getEncryptedStore().getWritableProperties(user, container, FILE_TRANSFER_AUTH_CATEGORY, true);
     }
@@ -125,7 +126,7 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
     @Override
     public SecurePropertiesDataStore set(String key, StoredCredential value)
     {
-        PropertyManager.PropertyMap properties = getWritableProperties(user, container);
+        WritablePropertyMap properties = getWritableProperties(user, container);
         properties.put(ACCESS_TOKEN, value.getAccessToken());
         properties.put(REFRESH_TOKEN, value.getRefreshToken());
         properties.put(EXPIRE_TIME_MILLIS, String.valueOf(value.getExpirationTimeMilliseconds()));
@@ -137,7 +138,7 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
     @Override
     public SecurePropertiesDataStore clear()
     {
-        PropertyManager.PropertyMap properties = getWritableProperties(user, container);
+        WritablePropertyMap properties = getWritableProperties(user, container);
         properties.clear();
         properties.save();
 
@@ -147,7 +148,7 @@ public class SecurePropertiesDataStore implements DataStore<StoredCredential>
     @Override
     public SecurePropertiesDataStore delete(String key)
     {
-        PropertyManager.PropertyMap properties = getWritableProperties(user, container);
+        WritablePropertyMap properties = getWritableProperties(user, container);
         properties.remove(key);
         properties.save();
 
